@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="从选题到出图，一站式小红书图文生产线——既能写文案，又能出图。40 套风格 × 10 步工作流。" />
+  <title>小红书图文视觉工坊 — 一站式图文生产线 | 陈楠</title>
+
+  <!-- 依赖 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000', text: '#ffffff', muted: 'rgba(255,255,255,0.55)', sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)', borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)', surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- 核心样式 -->
+  <style>
+    body { font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; background-color: #000; color: #fff; -webkit-font-smoothing: antialiased; }
+    code, .font-mono { font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace; }
+    ::selection { background: #ff9ac8; color: #000; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; background-color: transparent; backdrop-filter: blur(0px); border-bottom: 1px solid transparent; transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s; }
+    .header.is-scrolled { padding-top: 1rem; padding-bottom: 1rem; background-color: rgba(0,0,0,0.55); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom-color: rgba(255,255,255,0.06); }
+    .header-logo { flex: 1; color: rgba(255,255,255,0.55); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) { .header { padding: 1rem 1.5rem; } .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; } }
+
+    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none; background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%); }
+    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(120px); will-change: transform; }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%; background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%); animation: blobFloat1 20s ease-in-out infinite; }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%; background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%); animation: blobFloat2 24s ease-in-out infinite; }
+    @keyframes blobFloat1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,80px) scale(1.1); } 66% { transform: translate(40px,-40px) scale(0.95); } }
+    @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-50px) scale(1.15); } 66% { transform: translate(-30px,40px) scale(0.9); } }
+    .bg-video { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.55; pointer-events: none; }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none; background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%); }
+
+    .card-glow { position: relative; overflow: hidden; background: rgba(255,255,255,0.08); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid rgba(255,255,255,0.08) !important; transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.6s cubic-bezier(0.22,1,0.36,1), background-color 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .card-glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0; background: radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent), radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%); transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1); pointer-events: none; }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover { border-color: rgba(226,242,31,0.55); background-color: rgba(255,255,255,0.14); box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06); }
+    .card-glow > * { position: relative; z-index: 1; }
+
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em; width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7; }
+
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); transition: all 0.3s; }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+
+    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: zoom-in; }
+    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+    .img-lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; cursor: zoom-out; opacity: 0; transition: opacity 0.3s ease; }
+    .img-lightbox.active { opacity: 1; }
+    .img-lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0; }
+    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
+    .lightbox-prev { left: 16px; } .lightbox-next { right: 16px; }
+    @media (min-width: 768px) { .lightbox-prev { left: 32px; } .lightbox-next { right: 32px; } }
+    .lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em; }
+
+    .content-card { padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+    .tool-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border-radius: 14px; transition: background 0.3s; }
+    .tool-card:hover { background: rgba(255,255,255,0.03); }
+    .tool-matrix-img { width: 78px; height: 78px; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; display: block; margin: 0 auto; }
+    .tool-card:hover .tool-matrix-img { transform: scale(1.12); }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <!-- ============================================================ -->
+  <!-- ===================== 配置区域：只改这里 ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    const CONFIG = {
+      // ---------- 导航栏 ----------
+      nav: {
+        logoText: '返回首页',
+        logoLink: '../../index.html#project-1',
+        links: [
+          { text: '核心流程', href: '#section-process' },
+          { text: '量化成果', href: '#section-stats' }
+        ]
+      },
+
+      // ---------- Hero 区域 ----------
+      hero: {
+        meta: '2026 · AI Agent Skill 设计',
+        tag: '40套风格 × 10步工作流',
+        title: {
+          line1: '小红书图文视觉工坊',
+          prefix: '从选题到出图，',
+          highlight: '一站式图文生产线'
+        },
+        description: '既能<strong style="color:#fff;">写文案</strong>，又能<strong style="color:#fff;">出图</strong>——从<strong style="color:#fff;">选题判断 → 风格选择 → 视觉规划 → 提示词生成 → 出图 → 标题正文标签</strong>，全链路一站式完成。把一个小红书博主的完整工作流，变成了 AI 可以独立执行的图文生产线。',
+        labels: ['文案 + 视觉 双输出', '视觉风格库 × 40', '6大赛道验证产出', '10步全链路 Agent']
+      },
+
+      // ---------- 方法流程 ----------
+      process: {
+        id: 'section-process',
+        title: '方法架构：10 步图文生产工作流',
+        description: '从选题到发布，Agent 自主完成 10 个步骤——既产出视觉方案，也产出文案。每一步都有判断逻辑，不只是套模板。',
+        image: 'Xnapper-2026-07-02-14.59.53.webp',
+        steps: [
+          { number: '01', title: '创意简报到风格判断', desc: '识别输入类型（选题/草稿/截图/产品图），信息不足时先出奥美 4A 级创意简报对齐 7 个关键字段。然后输出风格判断报告：内容类型 × 传播目标 × 读者情绪 × 信息密度 → 三套风格方案。' },
+          { number: '02', title: '视觉母版到出图确认', desc: '锁定统一视觉母版（字体/色彩/网格/组件），生成 1 张封面确认图。A/B 出图确认 + 画质选择，不替用户做不该做的决定。确认后规划 6-8 页图文结构，每页只承担一个传播任务。' },
+          { number: '03', title: '批量出图到发布文案', desc: '批量生成整套最终图，逐页附详细视觉规划和提示词记录。通过 15 项视觉审查（比例/可读性/高级感/反模式），最后输出标题、正文、标签和评论区引导文案。' }
+        ]
+      },
+
+      // ---------- 实证（产出截图） ----------
+      gallery: {
+        id: 'section-gallery',
+        title: '验证产出：6 大赛道封面',
+        description: '每套方案包含封面 + 6-8 页内页 + 逐页提示词 + 发布文案。覆盖家居家装、平价好物、美甲、体育、户外、宠物 6 个不相交大赛道，全部基于千瓜数据 2026 十大热词报告的真实趋势。',
+        items: [
+          { title: '家居家装 · 反差冲击风', cover: 'output/01-家居家装_30平米我拆了一面墙之后_20260619/page-01-cover.webp', pages: '6' },
+          { title: '平价好物 · 暖调种草风', cover: 'output/02-平价好物_月均200的出租屋好物每一件都用了半年以上_20260619/page-01-cover.webp', pages: '4:prompt' },
+          { title: '美甲穿戴甲 · 设计师灵感板', cover: 'output/03-美甲穿戴甲_不用去美甲店了穿戴甲入门指南_20260619/page-01-cover.webp', pages: '4:prompt' },
+          { title: '体育 · 深色科技杂志风', cover: 'output/04-体育生活方式_看不懂球但看懂了快乐世界杯新手生存指南_20260619/page-01-cover.webp', pages: '4:prompt' },
+          { title: '户外自然 · 地理标注风', cover: 'output/05-户外自然_家门口的公园我数到了12种鸟_20260619/page-01-cover.webp', pages: '5' },
+          { title: '宠物 · 手绘涂鸦笔记风', cover: 'output/06-宠物_养猫第一年真正需要的东西只有这10件_20260619/page-01-cover.webp', pages: '4:prompt' }
+        ]
+      },
+
+      // ---------- 量化成果 ----------
+      stats: {
+        id: 'section-stats',
+        title: '量化成果',
+        description: '文案 + 视觉，双输出能力拆成可度量、可复用、可扩展的规则系统。',
+        items: [
+          { value: '40', suffix: ' 套',  label: '内置视觉风格库', desc: '每套 11 维完整规格 + 负面约束' },
+          { value: '25', suffix: '+ 种', label: '内容类型自动匹配', desc: 'Agent 根据选题自动推荐风格' },
+          { value: '6', suffix: ' 套',  label: '不相交赛道验证', desc: '覆盖家居/好物/美甲/体育/户外/宠物' },
+          { value: '10', suffix: ' 步',  label: '全链路工作流', desc: '从创意简报到发布文案一站式完成' }
+        ]
+      },
+
+      // ---------- 差异化价值 ----------
+      values: {
+        id: 'section-values',
+        title: '差异化设计',
+        items: [
+          { number: '01', title: '文案 + 视觉，一条龙产出', desc: '选题进去，图文出来。封面、内页、标题、正文、标签、评论引导——Agent 自主完成全链路，不是只出一半就停。' },
+          { number: '02', title: '生产级质量控制', desc: '跨页一致性协议锁定视觉母版、15 项审查清单逐页检查、反模式清单禁止廉价 AI 科技风——把设计 QC 流程写进了 Agent 指令系统。' },
+          { number: '03', title: '可扩展规则系统', desc: '字体令牌按内容气质精确匹配（思源黑体/阿里巴巴普惠体/苹方），新增风格只需更新映射表 + 风格定义，Agent 自动生效，无需改代码。' }
+        ]
+      },
+
+      // ---------- 工具矩阵 ----------
+      tools: {
+        id: 'section-tools',
+        title: '工具矩阵',
+        description: '每个环节对应的最优 AI 工具',
+        items: [
+          { title: 'Claude Code', src: 'icon/claudecode-color-dark.webp', alt: 'Claude Code' },
+          { title: 'meigen-mcp', src: 'icon/meigen-mcp.jpg', alt: 'meigen-mcp' },
+          { title: 'Python', src: 'icon/python.webp', alt: 'Python' }
+        ]
+      },
+
+      // ---------- 金句 ----------
+      quote: {
+        text: '不只是"能写小红书文案的 AI"。是"会做设计决策的 AI Agent"。',
+        source: '小红书图文视觉工坊'
+      }
+    };
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 页面结构（按固定叙事顺序） ============= -->
+  <!-- ============================================================ -->
+
+  <!-- 全局视觉层 -->
+  <video class="bg-video" autoplay muted loop playsinline poster="">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <!-- 导航栏 -->
+  <header class="header" id="header">
+    <a href="#" class="header-logo" id="nav-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      <span id="nav-logo-text">返回首页</span>
+    </a>
+    <div class="header-right" id="nav-links"></div>
+  </header>
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]" id="hero-meta"></span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);" id="hero-tag"></span>
+      </div>
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white" id="hero-title"></h1>
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl" id="hero-desc"></p>
+      <div class="mt-10 flex flex-wrap gap-3" id="hero-labels"></div>
+    </div>
+  </header>
+
+  <!-- 1. 方法流程 -->
+  <section class="py-20 px-8 sm:px-12" id="section-process">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="process-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="process-desc"></p>
+      </div>
+      <div class="mt-8 scroll-reveal">
+        <img loading="lazy" src="" alt="10步图文生产工作流" class="case-img" id="process-image" style="border-radius:16px;">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal mt-8" id="process-grid"></div>
+    </div>
+  </section>
+
+  <!-- 2. 实证（图片/截图/视频） -->
+  <section class="py-20 px-8 sm:px-12" id="section-gallery">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="gallery-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="gallery-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 scroll-reveal" id="gallery-grid"></div>
+    </div>
+  </section>
+
+  <!-- 3. 量化成果 -->
+  <section class="py-20 px-8 sm:px-12" id="section-stats">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-12 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="stats-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="stats-desc"></p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 scroll-reveal" id="stats-grid"></div>
+    </div>
+  </section>
+
+  <!-- 4. 差异化价值 -->
+  <section class="py-20 px-8 sm:px-12" id="section-values">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="values-title"></h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal" id="values-grid"></div>
+    </div>
+  </section>
+
+  <!-- 5. 工具矩阵 -->
+  <section class="py-20 px-8 sm:px-12" id="section-tools">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="tools-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="tools-desc"></p>
+      </div>
+      <div class="grid grid-cols-3 gap-5 scroll-reveal" id="tools-grid"></div>
+    </div>
+  </section>
+
+  <!-- 6. 金句 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto" id="quote-text"></p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase" id="quote-source"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20" id="built-with"></div>
+      <p>vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 渲染引擎（不用改） ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    // ---------- 导航 ----------
+    document.getElementById('nav-logo').href = CONFIG.nav.logoLink;
+    document.getElementById('nav-logo-text').textContent = CONFIG.nav.logoText;
+    const navLinksEl = document.getElementById('nav-links');
+    CONFIG.nav.links.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.className = 'header-social';
+      a.innerHTML = `<span>${link.text}</span>`;
+      navLinksEl.appendChild(a);
+    });
+
+    // ---------- Hero ----------
+    document.getElementById('hero-meta').textContent = CONFIG.hero.meta;
+    document.getElementById('hero-tag').textContent = CONFIG.hero.tag;
+    document.getElementById('hero-title').innerHTML =
+      `${CONFIG.hero.title.line1}<br><span class="text-white/75">${CONFIG.hero.title.prefix}</span> <span style="color:#e2f21f;">${CONFIG.hero.title.highlight}</span>`;
+    document.getElementById('hero-desc').innerHTML = CONFIG.hero.description;
+    const heroLabelsEl = document.getElementById('hero-labels');
+    CONFIG.hero.labels.forEach(label => {
+      const span = document.createElement('span');
+      span.className = 'card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50';
+      span.innerHTML = `<span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>${label}`;
+      heroLabelsEl.appendChild(span);
+    });
+
+    // ---------- Process ----------
+    document.getElementById('process-title').textContent = CONFIG.process.title;
+    document.getElementById('process-desc').textContent = CONFIG.process.description;
+    document.getElementById('process-image').src = CONFIG.process.image;
+    const processGrid = document.getElementById('process-grid');
+    CONFIG.process.steps.forEach(step => {
+      const div = document.createElement('div');
+      div.className = 'content-card';
+      div.innerHTML = `
+        <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP ${step.number}</div>
+        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${step.title}</h4>
+        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${step.desc}</p>
+      `;
+      processGrid.appendChild(div);
+    });
+
+    // ---------- Gallery ----------
+    // 解析 pages 字符串，返回该赛道所有页面的路径数组
+    // pages: '6' → 6页标准命名 (page-01-cover.webp, page-02.webp, ...)
+    // pages: '4:prompt' → 4页，2页起用 _prompt 后缀 (page-01-cover.webp, page-02_prompt.webp, ...)
+    function parsePages(cover, pagesStr) {
+      const dir = cover.substring(0, cover.lastIndexOf('/'));
+      const [totalStr, suffix] = pagesStr.split(':');
+      const total = parseInt(totalStr);
+      const pages = [];
+      for (let i = 1; i <= total; i++) {
+        const num = String(i).padStart(2, '0');
+        let file;
+        if (i === 1) {
+          file = `page-${num}-cover.webp`;
+        } else if (suffix === 'prompt') {
+          file = `page-${num}_prompt.webp`;
+        } else {
+          file = `page-${num}.webp`;
+        }
+        pages.push(`${dir}/${file}`);
+      }
+      return pages;
+    }
+
+    document.getElementById('gallery-title').textContent = CONFIG.gallery.title;
+    document.getElementById('gallery-desc').textContent = CONFIG.gallery.description;
+    const galleryGrid = document.getElementById('gallery-grid');
+    // 为每个缩略图绑定独立的页面列表
+    const galleryPages = [];
+    CONFIG.gallery.items.forEach((item, idx) => {
+      const pages = parsePages(item.cover, item.pages);
+      galleryPages.push(pages);
+      const div = document.createElement('div');
+      div.className = 'text-center';
+      div.innerHTML = `
+        <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider mb-2">${item.title}（${pages.length} 页）</div>
+        <img loading="lazy" src="${item.cover}" alt="${item.title}" class="case-img" data-gallery="${idx}">
+      `;
+      galleryGrid.appendChild(div);
+    });
+
+    // ---------- Stats ----------
+    document.getElementById('stats-title').textContent = CONFIG.stats.title;
+    document.getElementById('stats-desc').textContent = CONFIG.stats.description;
+    const statsGrid = document.getElementById('stats-grid');
+    CONFIG.stats.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'stat-card';
+      div.innerHTML = `
+        <div class="stat-value"><span class="stat-number">${item.value}</span>${item.suffix}</div>
+        <div class="stat-label">
+          <span style="color:#e2f21f;font-weight:500;">${item.label}</span><br>
+          ${item.desc}
+        </div>
+      `;
+      statsGrid.appendChild(div);
+    });
+
+    // ---------- Values ----------
+    document.getElementById('values-title').textContent = CONFIG.values.title;
+    const valuesGrid = document.getElementById('values-grid');
+    CONFIG.values.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'content-card';
+      div.innerHTML = `
+        <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">${item.number}</div>
+        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${item.title}</h4>
+        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${item.desc}</p>
+      `;
+      valuesGrid.appendChild(div);
+    });
+
+    // ---------- Tools ----------
+    document.getElementById('tools-title').textContent = CONFIG.tools.title;
+    document.getElementById('tools-desc').textContent = CONFIG.tools.description;
+    const toolsGrid = document.getElementById('tools-grid');
+    CONFIG.tools.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'tool-card';
+      if (item.src) {
+        div.innerHTML = `
+          <img loading="lazy" src="${item.src}" alt="${item.alt}" class="tool-matrix-img">
+          <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">${item.title}</div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div style="width:78px;height:78px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:2rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">${item.emoji || ''}</div>
+          <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">${item.title}</div>
+        `;
+      }
+      toolsGrid.appendChild(div);
+    });
+
+    // ---------- Quote ----------
+    document.getElementById('quote-text').textContent = CONFIG.quote.text;
+    document.getElementById('quote-source').textContent = CONFIG.quote.source;
+
+    // ---------- Built with ----------
+    document.getElementById('built-with').innerHTML =
+      '<span>Built with Claude Code</span><span>·</span><span>meigen-mcp</span><span>·</span><span>GSAP</span><span>·</span><span>Tailwind CSS</span>';
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 交互逻辑（不用改） ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
+    });
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+    });
+    document.querySelectorAll('.card-glow').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => {
+      gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    });
+    gsap.utils.toArray('.stat-number').forEach(el => {
+      gsap.from(el, { textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
+        scrollTrigger: { trigger: el, start: 'top 85%' }
+      });
+    });
+
+    // 图片灯箱（每组独立翻页 + ← → 键盘 + 计数器）
+    // 工作流大图点击放大（单图模式）
+    const processImg = document.getElementById('process-image');
+    if (processImg) {
+      processImg.addEventListener('click', () => {
+        openLightbox([CONFIG.process.image], 0);
+      });
+    }
+    document.querySelectorAll('.case-img').forEach(img => {
+      img.addEventListener('click', () => {
+        const gIdx = parseInt(img.dataset.gallery);
+        const pages = galleryPages[gIdx];
+        openLightbox(pages, 0);
+      });
+    });
+    function openLightbox(pages, startIdx) {
+      let currentIdx = startIdx;
+      const overlay = document.createElement('div'); overlay.className = 'img-lightbox';
+      const imgEl = document.createElement('img'); imgEl.src = pages[currentIdx]; imgEl.alt = '';
+      const prevBtn = document.createElement('button'); prevBtn.className = 'lightbox-nav lightbox-prev'; prevBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
+      const nextBtn = document.createElement('button'); nextBtn.className = 'lightbox-nav lightbox-next'; nextBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>';
+      const counter = document.createElement('div'); counter.className = 'lightbox-counter'; counter.textContent = (currentIdx + 1) + ' / ' + pages.length;
+      function updateImg() { imgEl.src = pages[currentIdx]; counter.textContent = (currentIdx + 1) + ' / ' + pages.length; }
+      prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + pages.length) % pages.length; updateImg(); });
+      nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % pages.length; updateImg(); });
+      // 单页时隐藏导航按钮
+      if (pages.length <= 1) { prevBtn.style.display = 'none'; nextBtn.style.display = 'none'; counter.style.display = 'none'; }
+      overlay.appendChild(imgEl); overlay.appendChild(prevBtn); overlay.appendChild(nextBtn); overlay.appendChild(counter);
+      document.body.appendChild(overlay); requestAnimationFrame(() => overlay.classList.add('active'));
+      const close = () => { overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 300); document.removeEventListener('keydown', onKey); };
+      overlay.addEventListener('click', (e) => { if (e.target === overlay || e.target === imgEl) close(); });
+      function onKey(e) { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') prevBtn.click(); if (e.key === 'ArrowRight') nextBtn.click(); }
+      document.addEventListener('keydown', onKey);
+    }
+
+    const initSmoothScroll = () => {
+      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
+      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      return lenis;
+    };
+    initSmoothScroll();
+  </script>
+
+</body>
+</html>

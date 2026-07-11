@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="织图 — AI 原生商品图文工作台，上传商品图自动生成电商详情页，支持私有化部署">
+  <title>织图 — AI 原生商品图文工作台 | 陈楠</title>
+
+  <!-- 依赖 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000', text: '#ffffff', muted: 'rgba(255,255,255,0.55)', sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)', borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)', surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- 核心样式 -->
+  <style>
+    body { font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; background-color: #000; color: #fff; -webkit-font-smoothing: antialiased; }
+    code, .font-mono { font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace; }
+    ::selection { background: #ff9ac8; color: #000; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; background-color: transparent; backdrop-filter: blur(0px); border-bottom: 1px solid transparent; transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s; }
+    .header.is-scrolled { padding-top: 1rem; padding-bottom: 1rem; background-color: rgba(0,0,0,0.55); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom-color: rgba(255,255,255,0.06); }
+    .header-logo { flex: 1; color: rgba(255,255,255,0.55); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) { .header { padding: 1rem 1.5rem; } .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; } }
+
+    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none; background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%); }
+    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(120px); will-change: transform; }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%; background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%); animation: blobFloat1 20s ease-in-out infinite; }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%; background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%); animation: blobFloat2 24s ease-in-out infinite; }
+    @keyframes blobFloat1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,80px) scale(1.1); } 66% { transform: translate(40px,-40px) scale(0.95); } }
+    @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-50px) scale(1.15); } 66% { transform: translate(-30px,40px) scale(0.9); } }
+    .bg-video { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.55; pointer-events: none; }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none; background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%); }
+
+    .card-glow { position: relative; overflow: hidden; background: rgba(255,255,255,0.08); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid rgba(255,255,255,0.08) !important; transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.6s cubic-bezier(0.22,1,0.36,1), background-color 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .card-glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0; background: radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent), radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%); transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1); pointer-events: none; }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover { border-color: rgba(226,242,31,0.55); background-color: rgba(255,255,255,0.14); box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06); }
+    .card-glow > * { position: relative; z-index: 1; }
+
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em; width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7; }
+
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); transition: all 0.3s; }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+
+    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: zoom-in; }
+    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+    .img-lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; cursor: zoom-out; opacity: 0; transition: opacity 0.3s ease; }
+    .img-lightbox.active { opacity: 1; }
+    .img-lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0; }
+    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
+    .lightbox-prev { left: 16px; } .lightbox-next { right: 16px; }
+    @media (min-width: 768px) { .lightbox-prev { left: 32px; } .lightbox-next { right: 32px; } }
+    .lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em; }
+
+    .content-card { padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+    .tool-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border-radius: 14px; transition: background 0.3s; }
+    .tool-card:hover { background: rgba(255,255,255,0.03); }
+    .tool-matrix-img { width: 78px; height: 78px; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; display: block; margin: 0 auto; }
+    .tool-card:hover .tool-matrix-img { transform: scale(1.12); }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <!-- ============================================================ -->
+  <!-- ===================== 配置区域：只改这里 ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    const CONFIG = {
+      // ---------- 导航栏（最多 2 项） ----------
+      nav: {
+        logoText: '返回首页',
+        logoLink: '../../index.html#project-4',
+        links: [
+          { text: '使用实例', href: '#section-gallery' },
+          { text: '量化成果', href: '#section-stats' }
+        ]
+      },
+
+      // ---------- Hero 区域 ----------
+      hero: {
+        meta: '2026 · 独立设计 & 开发',
+        tag: '双端 · 私有化部署',
+        title: {
+          line1: '一键生成电商头图和详情页',
+          prefix: '把素材成本从',
+          highlight: '¥3000 降到 ¥0.6'
+        },
+        description: '织图 —— 商品图文一体化生成工具<br>自动完成商品分析、页面设计与视觉生成，大幅提升详情页制作效率。',
+        labels: ['电商详情页', '批量生产', '图片编辑', '私有化部署']
+      },
+
+      // ---------- 痛点 ----------
+      painPoints: {
+        id: 'section-pain-points',
+        title: '解决什么问题',
+        description: '电商内容生产中最常见的四个卡点，织图逐个对症。',
+        items: [
+          { title: '排期慢', desc: '一套详情页从拍摄到上架排 3–5 天，织图上传商品图分钟级出稿。' },
+          { title: '改稿烦', desc: '详情页来回改 5–6 轮，四步管线每步可干预、可编辑，不用推翻重来。' },
+          { title: 'SKU 多', desc: '几十个 SKU 逐个做图耗时巨大，批量创建 + 后台异步任务，启动后不用盯屏。' },
+          { title: '数据怕漏', desc: 'API Key 仅存浏览器 localStorage，不落服务端数据库，支持私有网关统一管理。' }
+        ]
+      },
+
+      // ---------- 方法流程 ----------
+      process: {
+        id: 'section-process',
+        title: '方法架构：四步图文生产管线',
+        description: '每一步都可干预、可编辑，不是黑盒生成。',
+        steps: [
+          { number: '01', title: '内容规划', desc: '上传商品图，AI 自动分析卖点、视觉风格与页面结构，生成结构化内容规划方案。' },
+          { number: '02', title: 'Prompt 审核', desc: 'Visual Prompt Agent 在每次生成前审核并优化提示词，确保图文质量和风格一致性。' },
+          { number: '03', title: '图片生成', desc: '调用 gpt-image-2 生成商品图文，支持多语言转换，被动模型发现避免浪费额度。' },
+          { number: '04', title: '在线编辑', desc: '生成后可在浏览器内微调图片，不满意可重新生成，直到效果满意为止。' }
+        ]
+      },
+
+      // ---------- 使用实例 ----------
+      gallery: {
+        id: 'section-gallery',
+        title: '使用实例',
+        description: '织图核心界面实拍：从项目创建到详情页生成、图片编辑、导出成品，全流程截图。',
+        items: [
+          { title: '上传图片', src: './1.webp', alt: '上传图片' },
+          { title: '批量出图', src: './2.webp', alt: '批量出图' },
+          { title: '图片编辑', src: './3.webp', alt: '图片编辑' },
+          { title: '导出成品', src: './4.webp', alt: '导出成品' }
+        ]
+      },
+
+      // ---------- 量化成果（放在实证之后） ----------
+      stats: {
+        id: 'section-stats',
+        title: '量化成果',
+        description: '传统电商视觉一套素材 ¥3000+，设计师排期 7 天。织图把全流程压缩到 20 分钟，边际成本趋近于零。',
+        items: [
+          { value: '99', suffix: '%',  label: '成本降幅', desc: '¥3000 → ¥0.6，试错不再心疼' },
+          { value: '504', suffix: '×',  label: '效率提升', desc: '7天 → 20分钟，排期不再瓶颈' },
+          { value: '30', suffix: '+',  label: '单批次产出', desc: '5大场景全覆盖' }
+        ]
+      },
+
+      // ---------- 金句 ----------
+      quote: {
+        text: '织图是你的 AI 美工助理——上传商品图，自动出头图和详情页，你负责拍板。',
+        source: '织图 产品定位'
+      }
+    };
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 页面结构（按固定叙事顺序） ============= -->
+  <!-- ============================================================ -->
+
+  <!-- 全局视觉层 -->
+  <video class="bg-video" autoplay muted loop playsinline poster="">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <!-- 导航栏 -->
+  <header class="header" id="header">
+    <a href="#" class="header-logo" id="nav-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      <span id="nav-logo-text">返回首页</span>
+    </a>
+    <div class="header-right" id="nav-links"></div>
+  </header>
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]" id="hero-meta"></span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);" id="hero-tag"></span>
+      </div>
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white" id="hero-title"></h1>
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl" id="hero-desc"></p>
+      <div class="mt-10 flex flex-wrap gap-3" id="hero-labels"></div>
+    </div>
+  </header>
+
+  <!-- 1. 痛点 -->
+  <section class="py-20 px-8 sm:px-12" id="section-pain-points">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="pain-points-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="pain-points-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 scroll-reveal" id="pain-points-grid"></div>
+    </div>
+  </section>
+
+  <!-- 2. 使用实例 -->
+  <section class="py-20 px-8 sm:px-12" id="section-gallery">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="gallery-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="gallery-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 scroll-reveal" id="gallery-grid"></div>
+    </div>
+  </section>
+
+  <!-- 3. 量化成果 -->
+  <section class="py-20 px-8 sm:px-12" id="section-stats">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-12 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="stats-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="stats-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal" id="stats-grid"></div>
+    </div>
+  </section>
+
+  <!-- 4. 方法架构 -->
+  <section class="py-20 px-8 sm:px-12" id="section-process">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="process-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="process-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 scroll-reveal" id="process-grid"></div>
+    </div>
+  </section>
+
+  <!-- 5. 总结 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto" id="quote-text"></p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase" id="quote-source"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20" id="built-with"></div>
+      <p>vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 渲染引擎（不用改） ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    // ---------- 导航 ----------
+    document.getElementById('nav-logo').href = CONFIG.nav.logoLink;
+    document.getElementById('nav-logo-text').textContent = CONFIG.nav.logoText;
+    const navLinksEl = document.getElementById('nav-links');
+    CONFIG.nav.links.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.className = 'header-social';
+      a.innerHTML = `<span>${link.text}</span>`;
+      navLinksEl.appendChild(a);
+    });
+
+    // ---------- Hero ----------
+    document.getElementById('hero-meta').textContent = CONFIG.hero.meta;
+    document.getElementById('hero-tag').textContent = CONFIG.hero.tag;
+    document.getElementById('hero-title').innerHTML =
+      `${CONFIG.hero.title.line1}<br><span class="text-white/75">${CONFIG.hero.title.prefix}</span> <span style="color:#e2f21f;">${CONFIG.hero.title.highlight}</span>`;
+    document.getElementById('hero-desc').innerHTML = CONFIG.hero.description;
+    const heroLabelsEl = document.getElementById('hero-labels');
+    CONFIG.hero.labels.forEach(label => {
+      const span = document.createElement('span');
+      span.className = 'card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50';
+      span.innerHTML = `<span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>${label}`;
+      heroLabelsEl.appendChild(span);
+    });
+
+    // ---------- Pain Points ----------
+    document.getElementById('pain-points-title').textContent = CONFIG.painPoints.title;
+    document.getElementById('pain-points-desc').textContent = CONFIG.painPoints.description;
+    const painPointsGrid = document.getElementById('pain-points-grid');
+    CONFIG.painPoints.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'content-card';
+      div.innerHTML = `
+        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${item.title}</h4>
+        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${item.desc}</p>
+      `;
+      painPointsGrid.appendChild(div);
+    });
+
+    // ---------- Process ----------
+    document.getElementById('process-title').textContent = CONFIG.process.title;
+    document.getElementById('process-desc').textContent = CONFIG.process.description;
+    const processGrid = document.getElementById('process-grid');
+    CONFIG.process.steps.forEach(step => {
+      const div = document.createElement('div');
+      div.className = 'content-card';
+      div.innerHTML = `
+        <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP ${step.number}</div>
+        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${step.title}</h4>
+        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${step.desc}</p>
+      `;
+      processGrid.appendChild(div);
+    });
+
+    // ---------- Gallery ----------
+    document.getElementById('gallery-title').textContent = CONFIG.gallery.title;
+    document.getElementById('gallery-desc').textContent = CONFIG.gallery.description;
+    const galleryGrid = document.getElementById('gallery-grid');
+    CONFIG.gallery.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'text-center';
+      div.innerHTML = `
+        <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider mb-2">${item.title}</div>
+        <img loading="lazy" src="${item.src}" alt="${item.alt}" class="case-img">
+      `;
+      galleryGrid.appendChild(div);
+    });
+
+    // ---------- Stats ----------
+    document.getElementById('stats-title').textContent = CONFIG.stats.title;
+    document.getElementById('stats-desc').textContent = CONFIG.stats.description;
+    const statsGrid = document.getElementById('stats-grid');
+    CONFIG.stats.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'stat-card';
+      div.innerHTML = `
+        <div class="stat-value"><span class="stat-number">${item.value}</span>${item.suffix}</div>
+        <div class="stat-label">
+          <span style="color:#e2f21f;font-weight:500;">${item.label}</span><br>
+          ${item.desc}
+        </div>
+      `;
+      statsGrid.appendChild(div);
+    });
+
+    // ---------- Quote ----------
+    document.getElementById('quote-text').textContent = CONFIG.quote.text;
+    document.getElementById('quote-source').textContent = CONFIG.quote.source;
+
+    // ---------- Built with ----------
+    document.getElementById('built-with').innerHTML =
+      '<span>Built with Next.js</span><span>·</span><span>Electron</span><span>·</span><span>Prisma + SQLite</span><span>·</span><span>OpenAI Compatible API</span><span>·</span><span>Claude Code</span>';
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 交互逻辑（不用改） ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
+    });
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+    });
+    document.querySelectorAll('.card-glow').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => {
+      gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    });
+    gsap.utils.toArray('.stat-number').forEach(el => {
+      gsap.from(el, { textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
+        scrollTrigger: { trigger: el, start: 'top 85%' }
+      });
+    });
+
+    // 图片灯箱（← → 键盘 + 计数器）
+    const caseImgs = Array.from(document.querySelectorAll('.case-img'));
+    caseImgs.forEach((img, idx) => { img.addEventListener('click', () => openLightbox(idx)); });
+    function openLightbox(startIdx) {
+      let currentIdx = startIdx;
+      const overlay = document.createElement('div'); overlay.className = 'img-lightbox';
+      const imgEl = document.createElement('img'); imgEl.src = caseImgs[currentIdx].src; imgEl.alt = caseImgs[currentIdx].alt;
+      const prevBtn = document.createElement('button'); prevBtn.className = 'lightbox-nav lightbox-prev'; prevBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
+      const nextBtn = document.createElement('button'); nextBtn.className = 'lightbox-nav lightbox-next'; nextBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>';
+      const counter = document.createElement('div'); counter.className = 'lightbox-counter'; counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length;
+      function updateImg() { imgEl.src = caseImgs[currentIdx].src; imgEl.alt = caseImgs[currentIdx].alt; counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length; }
+      prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + caseImgs.length) % caseImgs.length; updateImg(); });
+      nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % caseImgs.length; updateImg(); });
+      overlay.appendChild(imgEl); overlay.appendChild(prevBtn); overlay.appendChild(nextBtn); overlay.appendChild(counter);
+      document.body.appendChild(overlay); requestAnimationFrame(() => overlay.classList.add('active'));
+      const close = () => { overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 300); document.removeEventListener('keydown', onKey); };
+      overlay.addEventListener('click', (e) => { if (e.target === overlay || e.target === imgEl) close(); });
+      function onKey(e) { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') prevBtn.click(); if (e.key === 'ArrowRight') nextBtn.click(); }
+      document.addEventListener('keydown', onKey);
+    }
+
+    const initSmoothScroll = () => {
+      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
+      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      return lenis;
+    };
+    initSmoothScroll();
+  </script>
+
+</body>
+</html>

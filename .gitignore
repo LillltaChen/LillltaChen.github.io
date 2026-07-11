@@ -1,0 +1,26 @@
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+
+# macOS
+.DS_Store
+
+# Large media files (videos too large for git)
+ai-projects/**/*.mp4
+ai-projects/**/*.webm
+ai-projects/**/*.mov
+ai-projects/**/*.avi
+
+# PNG originals (converted to WebP)
+*.png
+
+# Embedded git repos (ignore as they're separate repositories)
+ai-projects/**/.git/
+ai-projects/04-AI Agent 公众号全流程写作 Skill/chen-wechat-ai-writer/
+ai-projects/08-网感训练板/deploy-点开使用/
+
+# Optimization scripts
+optimize_images.sh
+convert_to_webp.py
+add_lazy_loading.py

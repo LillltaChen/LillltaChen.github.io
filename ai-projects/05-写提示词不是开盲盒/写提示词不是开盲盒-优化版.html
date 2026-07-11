@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="把 AI 提示词工程从开盲盒变成可复用的结构化方法，7 个风格锚点确保批量出图风格 100% 一致。">
+  <title>提示词工程 Skill | 陈楠</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000', text: '#ffffff', muted: 'rgba(255,255,255,0.55)', sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)', borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)', surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; background-color: #000; color: #fff; -webkit-font-smoothing: antialiased; }
+    code, .font-mono { font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace; }
+    ::selection { background: #ff9ac8; color: #000; }
+    .header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; background-color: transparent; backdrop-filter: blur(0px); border-bottom: 1px solid transparent; transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s; }
+    .header.is-scrolled { padding-top: 1rem; padding-bottom: 1rem; background-color: rgba(0,0,0,0.55); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom-color: rgba(255,255,255,0.06); }
+    .header-logo { flex: 1; color: rgba(255,255,255,0.55); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) { .header { padding: 1rem 1.5rem; } .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; } }
+    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none; background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%); }
+    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(120px); will-change: transform; }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%; background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%); animation: blobFloat1 20s ease-in-out infinite; }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%; background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%); animation: blobFloat2 24s ease-in-out infinite; }
+    @keyframes blobFloat1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,80px) scale(1.1); } 66% { transform: translate(40px,-40px) scale(0.95); } }
+    @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-50px) scale(1.15); } 66% { transform: translate(-30px,40px) scale(0.9); } }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none; background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%); }
+    .card-glow { position: relative; overflow: hidden; background: rgba(255,255,255,0.08); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid rgba(255,255,255,0.08) !important; transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.6s cubic-bezier(0.22,1,0.36,1), background-color 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .card-glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0; background: radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent), radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%); transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1); pointer-events: none; }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover { border-color: rgba(226,242,31,0.55); background-color: rgba(255,255,255,0.14); box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06); }
+    .card-glow > * { position: relative; z-index: 1; }
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em; width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7; }
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); transition: all 0.3s; }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: zoom-in; }
+    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .img-lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; cursor: zoom-out; opacity: 0; transition: opacity 0.3s ease; }
+    .img-lightbox.active { opacity: 1; }
+    .img-lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0; }
+    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
+    .lightbox-prev { left: 16px; } .lightbox-next { right: 16px; }
+    @media (min-width: 768px) { .lightbox-prev { left: 32px; } .lightbox-next { right: 32px; } }
+    .lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em; }
+    .tool-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border-radius: 14px; transition: background 0.3s; }
+    .tool-card:hover { background: rgba(255,255,255,0.03); }
+    .tool-matrix-img { width: 78px; height: 78px; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; display: block; margin: 0 auto; }
+    .tool-card:hover .tool-matrix-img { transform: scale(1.12); }
+    /* 案例内嵌展开 */
+    .case-detail-wrap {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .case-detail-wrap.open {
+      max-height: 2000px;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .case-detail-panel {
+      display: flex;
+      gap: 1.75rem;
+      padding: 1.5rem;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+    }
+    .case-detail-text-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;
+    }
+    .case-detail-close {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s;
+    }
+    @media (min-width: 768px) {
+      .case-detail-panel { flex-direction: row; align-items: stretch; }
+      .case-detail-img-col { flex: 0 0 52%; min-width: 0; }
+      .case-detail-img-wrap { position: relative; display: inline-block; width: 100%; }
+      .case-detail-text-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .case-detail-text-inner { flex: 1; min-height: 0; overflow-y: auto; padding-right: 8px; }
+    }
+    @media (max-width: 767px) {
+      .case-detail-panel { flex-direction: column; gap: 1.25rem; padding: 1rem; }
+    }
+    .case-detail-img-col img {
+      width: 100%; height: auto; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08); display: block;
+    }
+    .case-detail-text-inner::-webkit-scrollbar { width: 3px; }
+    .case-detail-text-inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+    .case-detail-label {
+      display: inline-block; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #e2f21f; padding: 0.2em 0.6em; border-radius: 4px;
+      background: rgba(226,242,31,0.08); border: 1px solid rgba(226,242,31,0.18);
+    }
+    .case-detail-prompt {
+      font-size: 0.875rem; line-height: 1.85; color: rgba(255,255,255,0.72);
+      letter-spacing: 0.01em; margin-bottom: 1.25rem;
+    }
+    .case-detail-copy {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.45rem 0.85rem; border-radius: 8px;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08); cursor: pointer;
+      transition: all 0.25s; margin-top: 0.25rem;
+    }
+    .case-detail-copy:hover { color: #fff; background: rgba(226,242,31,0.08); border-color: rgba(226,242,31,0.25); }
+    .case-detail-copy.copied { color: #e2f21f; border-color: rgba(226,242,31,0.35); background: rgba(226,242,31,0.1); }
+    .case-detail-close {
+      position: absolute; top: 1rem; right: 1rem; width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 5;
+    }
+    .case-detail-close:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .case-img.is-active {
+      outline: 2px solid rgba(226,242,31,0.5); outline-offset: 3px; border-radius: 14px;
+    }
+    .case-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 3;
+    }
+    .case-nav:hover { background: rgba(226,242,31,0.12); border-color: rgba(226,242,31,0.4); color: #fff; }
+    .case-nav-prev { left: 8px; }
+    .case-nav-next { right: 8px; }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <header class="header" id="header">
+    <a href="../../index.html#project-6" class="header-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+      <span>返回首页</span>
+    </a>
+    <div class="header-right">
+      <a href="#gallery" class="header-social"><span>案例展示</span></a>
+      <a href="#flow" class="header-social"><span>Skill 架构</span></a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]">2026 · 独立设计 & 开发</span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);">100% 风格一致性</span>
+      </div>
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
+        写提示词不是开盲盒<br><span class="text-white/75">用结构</span> <span style="color:#e2f21f;">锁定 AI 出图风格</span>
+      </h1>
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl">
+        AI 出图最大的问题是<strong style="color:#fff;">不可控</strong>——同一段提示词换一轮，风格全变。我把这套方法封装成了一个 <strong style="color:#fff;">Claude Code Skill</strong>：<strong style="color:#fff;">7 锚点三层架构</strong>，通用锚点锁定风格，变量槽填入项目参数。批量出图风格 100% 一致，换产品只改变量，团队可接手。
+      </p>
+      <div class="mt-10 flex flex-wrap gap-3">
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>7 锚点三层架构 · 可复用
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>批量出图 · 风格 100% 一致
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>换产品只改变量 · 团队可接手
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>合规前置 · 非事后审查
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. 量化成果 — 数字砸脸，立刻建立信任 -->
+  <section class="py-20 px-8 sm:px-12" id="results">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-12 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">量化成果</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl">
+          装上 Skill，换产品只改变量，风格不漂移。
+        </p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 scroll-reveal">
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">87</span>%</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">更快出图</span><br>15min → 2min，不再反复改写提示词</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">4</span>×</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">更高产出</span><br>30张 → 120张，结构复用量产</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">88</span>%</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">更精准</span><br>风格偏差率 40% → 5%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">30</span>min</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">更快上手</span><br>新人 2 天学会 → 30 分钟</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 案例展示 -->
+  <section class="py-20 px-8 sm:px-12" id="gallery">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">案例展示</h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 scroll-reveal" id="galleryGrid">
+        <div class="text-center"><img loading="lazy" src="export/案例11.webp" alt="GoodWe 新能源 · 创始人叙事" class="case-img gallery-img" data-case="case-11"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例12.webp" alt="晴日动感 · 千岛湖桨板" class="case-img gallery-img" data-case="case-12"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例13.webp" alt="Y2K拼贴 · 流心牛角包" class="case-img gallery-img" data-case="case-13"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例14.webp" alt="低多面体 · 运动竞争" class="case-img gallery-img" data-case="case-14"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例15.webp" alt="Y2K拼贴 · 搞怪酷女孩" class="case-img gallery-img" data-case="case-15"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例16.webp" alt="华为 MatePad Pro · 影子叙事" class="case-img gallery-img" data-case="case-16"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例17.webp" alt="薇诺娜防晒 · 影子防护" class="case-img gallery-img" data-case="case-17"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例18.webp" alt="尾巴生活 · 整只鸡主食罐" class="case-img gallery-img" data-case="case-18"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例19.webp" alt="霸王茶姬 · 伯牙绝弦" class="case-img gallery-img" data-case="case-19"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例20.webp" alt="益达 · 无糖口香糖" class="case-img gallery-img" data-case="case-20"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例21.webp" alt="京都念慈菴 · 润喉糖" class="case-img gallery-img" data-case="case-21"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例22.webp" alt="苔藓绿越野 · 晨雾竹梯田" class="case-img gallery-img" data-case="case-22"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例23.webp" alt="朱砂红东方 · 飞檐玻璃" class="case-img gallery-img" data-case="case-23"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例24.webp" alt="Nike AF1 · 四格街头涂鸦" class="case-img gallery-img" data-case="case-24"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例25.webp" alt="Cheetos 奇多 · 四格野性之旅" class="case-img gallery-img" data-case="case-25"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例1.webp" alt="街头拼贴 · 撕纸肌理" class="case-img gallery-img" data-case="case-1"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例2.webp" alt="纸质破碎 · 黑白纪实" class="case-img gallery-img" data-case="case-2"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例3.webp" alt="超现实 3D · 极简几何" class="case-img gallery-img" data-case="case-3"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例4.webp" alt="复古信纸 · 手写温度" class="case-img gallery-img" data-case="case-4"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例5.webp" alt="黑底霓虹 · 3D 图标" class="case-img gallery-img" data-case="case-5"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例6.webp" alt="彩虹渐变 · 3D 几何" class="case-img gallery-img" data-case="case-6"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例7.webp" alt="暖调鱼眼 · 产品冲击" class="case-img gallery-img" data-case="case-7"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例8.webp" alt="清新绿调 · 3D 卡通" class="case-img gallery-img" data-case="case-8"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例9.webp" alt="蓝黄撞色 · 迪斯科复古" class="case-img gallery-img" data-case="case-9"></div>
+        <div class="text-center"><img loading="lazy" src="export/案例10.webp" alt="荧光撞色 · 毛绒质感" class="case-img gallery-img" data-case="case-10"></div>
+      </div>
+      <!-- 内嵌展开面板 -->
+      <div class="case-detail-wrap" id="caseDetailWrap">
+        <div class="case-detail-panel" id="caseDetailPanel">
+          <div class="case-detail-img-col">
+            <div class="case-detail-img-wrap">
+              <img loading="lazy" src="" alt="" id="caseDetailImg">
+              <button class="case-nav case-nav-prev" id="caseNavPrev" aria-label="上一个案例">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+              </button>
+              <button class="case-nav case-nav-next" id="caseNavNext" aria-label="下一个案例">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="case-detail-text-col" id="caseDetailTextCol">
+            <div class="case-detail-text-header">
+              <span class="case-detail-label">提示词</span>
+              <button class="case-detail-close" id="caseDetailClose" aria-label="关闭">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+            </div>
+            <div class="case-detail-text-inner" id="caseDetailText"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Skill 架构 -->
+  <section class="py-20 px-8 sm:px-12" id="flow">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">Skill 架构：通用锚点 + 变量赋值 + 最终输出</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl">
+          三层解耦，每层固定输入、固定输出。通用层锁风格，项目层填内容，换产品只改变量。
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal">
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 01</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">风格结构（通用层）</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">定义 7 个风格锚点（视角、前景、主体、排版、字体、色调、平台元素），形成可复用的视觉系统模板。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 02</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">变量赋值（项目层）</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">将具体项目的参数（产品、文案、场景）填入变量槽位，风格不变，内容按需替换。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 03</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">最终输出（执行层）</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">自动生成可直接提交给 AI 的完整提示词，内置合规声明，规避平台红线。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Skill 骨架 -->
+  <section class="pb-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 scroll-reveal">
+        <div>
+          <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">Skill 骨架</h2>
+          <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl">通用锚点 → 变量赋值 → 最终提示，三层解耦，换平台只改变量。</p>
+        </div>
+        <a href="https://github.com/LillltaChen/prompt-framework" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-[0.8rem] text-white/40 hover:text-[#e2f21f] transition-colors shrink-0">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <span>GitHub 开源</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 scroll-reveal">
+        <div class="card-glow rounded-[22px] border border-white/[0.08] overflow-hidden cursor-zoom-in">
+          <img loading="lazy" src="11.webp" alt="步骤 1 - 通用模板骨架" class="w-full block case-img" style="border-radius:20px">
+        </div>
+        <div class="card-glow rounded-[22px] border border-white/[0.08] overflow-hidden cursor-zoom-in">
+          <img loading="lazy" src="22.webp" alt="步骤 2 - 变量赋值" class="w-full block case-img" style="border-radius:20px">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 关键认知 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto">
+          "提示词不是文学创作，是工程设计。把风格拆成锚点和槽位，之后所有的产出都是确定性的变量填空。"
+        </p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase">方法论沉淀</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20">
+        <span>Built with ChatGPT</span><span>·</span><span>Gemini</span><span>·</span><span>Kimi</span><span>·</span><span>Claude Code</span>
+      </div>
+      <p>vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+
+  <video autoplay muted loop playsinline style="position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;object-fit:cover;opacity:0.55;">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+
+  <script>
+    window.addEventListener('scroll', () => { document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20); });
+    document.addEventListener('mousemove', (e) => { document.body.style.setProperty('--mouse-x', e.clientX + 'px'); document.body.style.setProperty('--mouse-y', e.clientY + 'px'); });
+    document.querySelectorAll('.card-glow').forEach(card => { card.addEventListener('mousemove', (e) => { const rect = card.getBoundingClientRect(); card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px'); card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px'); }); });
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => { gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' } }); });
+    gsap.utils.toArray('.stat-number').forEach(el => { gsap.from(el, { textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 }, scrollTrigger: { trigger: el, start: 'top 85%' } }); });
+    // === 案例内嵌展开 ===
+    const casePrompts = {
+      'case-11': {
+        style_name: 'GoodWe新能源品牌叙事-创始人精神',
+        style_slug: 'case-11',
+        style_version: '1.0.0',
+        style_summary: '暖调纪实摄影，工程师/高管肖像在太阳能研发设施前，红黑白品牌配色，编辑杂志质感。',
+        prompt: 'GoodWe smart energy brand aesthetic: bold GoodWe Red (#E60012) paired with clean white (#FFFFFF) and black (#000000). Clean geometric sans-serif typography, bold and confident. All text crisp and legible.\n\nFounder narrative editorial ad. Warm, authentic photography style. Portrait of a senior engineer or executive in professional attire, standing in a modern solar R&D facility with inverter prototypes and solar panels visible on workbenches behind them, warm factory lighting. Headline: "\'In 2010, we made a bet that solar energy would be for everyone. 100 GW later, we know we were right.\'" in bold black. Two-sentence brand origin: "GoodWe was founded to make solar power accessible, reliable, and intelligent. Today, 1.8 million energy systems worldwide run on our technology." Signature style attribution: "GoodWe R&D Team — Suzhou, China | Orlando, FL". GoodWe logo in red (#E60012) and product subtle in background. Personal, mission-driven tone. Editorial magazine quality. 4:5 format.',
+        environment_variables: {
+          ASPECT_RATIO: '4:5',
+          STYLE: '暖调纪实摄影/编辑杂志质感/创始人叙事',
+
+        }
+      },
+      'case-12': {
+        style_name: '晴日动感字体照片海报-千岛湖桨板',
+        style_slug: 'case-12',
+        style_version: '1.0.0',
+        style_summary: '全出血阳光摄影，正午烈日与水面的反光，年轻桨板运动员动态裁剪，超大奶油紧缩中文标题，编辑杂志美学。',
+        prompt: 'A high-energy editorial travel poster in "Sunlit Kinetic Block Type Photo Poster" style. Full-bleed sunlit photography with harsh midday sunlight and water surface reflection. A young paddler (mid 20s, athletic build, quick-dry tank top, black board shorts) leaning forward from a paddleboard, paddle slicing through water creating splash droplets frozen in motion, diagonal dynamic crop from upper left to lower right creating kinetic tension. Paddleboard and safety leash as props. Location: Qiandao Lake, crystal clear freshwater. Background: forested islands, sparkling water surface, sun flare bouncing off ripples, vivid blue-sky color fields reflecting in water. Oversized cream condensed block typography in ultra-bold compact sans-serif: bold Chinese characters "水温22°C" as the dominant headline, occupying the upper sky area. Compact microcopy cluster at lower left in small clean geometric type: "千岛湖 / 桨板租赁 / 防晒指数50+ / 周日返程末班18:00" with slash and arrow symbols. High contrast, water droplet sharpness, subtle film grain, editorial magazine aesthetic, active travel campaign visual. No illustration, no collage, no watercolor, no 3D render. Aspect ratio 9:16.',
+        environment_variables: {
+          ASPECT_RATIO: '9:16',
+          STYLE: '晴日动感字体照片海报/全出血阳光摄影',
+
+        }
+      },
+      'case-13': {
+        style_name: 'Y2K街头贴纸拼贴-巨型流心牛角包',
+        style_slug: 'case-13',
+        style_version: '1.0.0',
+        style_summary: '高密度波普美食拼贴，半被咬流心牛角包，粗厚黑白双层隔离轮廓线，圆润漫画字体，明黄+番茄红。',
+        prompt: '将“Y2K街头贴纸拼贴风格（Y2K Streetwear Sticker Collage Style）”作为锁定视觉风格。创建 16:9 的图像。主体：一个被狠狠咬了一大口的巨型流心牛角面包，呈现为超大的、细节丰富的实物照片剪贴主体，切面露出浓郁拉丝的芝士。动作：面包呈现出被挤压、正在往下滴落酱汁的动态。道具/产品：周围堆叠着散落的番茄酱瓶、被撕开的黄油包装纸、恶搞的“卡路里超标”红色警示标签、以及超市称重条形码贴纸。环境/空间：美式复古快餐店的金属柜台前，带有反光镜面和红白格子瓷砖墙。背景/嵌套层：一个倾斜的嵌入小面板，形状模仿旧式电子秤的液晶显示屏，内部显示“美味超载”的文字剪影。服饰/造型细节：边缘隐约露出捏着面包的、穿着粉色尼龙袖口和戴着复古戒指的手指。主文本（大字汉字）：碳水万岁次要文本（辅助汉字）：拒绝焦虑 / 热量爆炸强调符号：🔥 🍔 !! * ->【风格与视觉层级定向】一种高密度的波普美食拼贴风格。画面包含超大食物主体、具备粗厚黑白双层隔离轮廓线的道具。文本采用圆润、膨胀如充气气球般的中文漫画字体，带有厚重的堆叠阴影。 【色彩矩阵规划】使用极高饱和度的明黄色、番茄红作为视觉焦点，与背景的复古浅灰色、奶白色保持色调平衡。 【绝对避免】无真实品牌Logo、无创作者签名、无水印、无二维码。拒绝干净的极简主义布局、拒绝传统3D渲染、拒绝纯扁平矢量插画。无意外的压缩伪影、无肮脏模糊的像素噪点。',
+        environment_variables: {
+          ASPECT_RATIO: '16:9',
+          STYLE: 'Y2K街头贴纸拼贴/高密度波普美食拼贴',
+
+        }
+      },
+      'case-14': {
+        style_name: '低多面体几何渲染-运动竞争',
+        style_slug: 'case-14',
+        style_version: '1.0.0',
+        style_summary: '平面多角切面+胶片颗粒噪点，三色隔离(炭灰/松石绿+荧光橙+亮白)，电影级分割光，圆角黑框。',
+        prompt: '低多面体面几何渲染海报，16:9横向画幅。介质基底：每个表面拆解为平面的多角切面，覆盖厚重的胶片颗粒与噪点纹理，叠加细微的动态模糊拖影（仅在主体运动方向上）。拒绝写实摄影与3D光滑质感。主体：一个平凡的运动瞬间物件「{{具体对象}}」—— 磨损的篮球+篮网残影 / 跑鞋鞋底+跑道标线 / 拳击绷带+沙袋局部 —— 以超规格的电影级分量呈现。不出现完整人脸，仅保留局部人体姿态（握紧球拍的手、起跳的小腿剪影）或纯粹物件特写。光影系统：单一斜向电影级分割光。深炭灰与暗松石绿构成空间主调基底，一道锐利的荧光橙色光束以斜角切穿画面，在每个多角切面上形成独立的刻面高光。禁止平铺均匀光照，禁止柔和漫射光。色彩系统：严格三色隔离——深炭灰/暗松石绿（空间基底）+ 荧光橙（冲突光束）+ 亮白色（全部文字信息层）。不出现其他任何色相。画框与空间路由：全出血黑色圆角边框包裹整张画布。顶部与底部各有一条完全一致的横向文字条，内容为「[{{左侧标签}}] ... [{{居中标签}}] ... [NO. {{编号}}]」，使用小型大写的亮白色字体。文本结构（垂直阅读流）：1. 陈规区块：亮白色小字块，以「他们说：」开头，后跟2-4条简短运动/竞争法则，每行一条——「{{陈规台词}}」。这些台词必须听起来合理、正确、符合竞技常识。2. 分隔符：一个小型排版符号「{{分隔符}}」，置于陈规区块与标题之间。3. 标题：超粗压缩型亮白色无衬线字体，两行堆叠，锚定于画面左侧三分之一处。标题内容为「{{反驳标题-第一行}} / {{反驳标题-第二行}}」，必须直接反驳上方的「他们说」陈规区块。角落注释（可选）：画面角落放置括号框微型文案，内容为「{{系列名}} — {{祈使短语1}} / {{祈使短语2}}」。排除项：写实渲染、完整人脸、柔和漫射光、与铺垫文案呼应的标题、平铺均匀光照、超过3种颜色、3D光滑质感、渐变、发光效果、复杂背景。',
+        environment_variables: {
+          ASPECT_RATIO: '16:9',
+          STYLE: '低多面体几何渲染/胶片颗粒噪点/电影级分割光',
+
+        }
+      },
+      'case-15': {
+        style_name: 'Y2K街头贴纸拼贴-搞怪酷女孩',
+        style_slug: 'case-15',
+        style_version: '1.0.0',
+        style_summary: '高密度潮流街头拼贴，大剪影照片酷女孩搞怪光波动作，粗厚黑白漫画对话框，极光绿+电光紫撞色。',
+        prompt: '将“Y2K街头贴纸拼贴风格（Y2K Streetwear Sticker Collage Style）”作为锁定视觉风格。创建 16:9 的图像。主体：一个眼神叛逆、双手向前做出“发射超能力光波”搞怪姿势的酷女孩，呈现为大型剪贴照片人像。动作：身体向后倾斜，双手带有强烈的透视感和动态。道具/产品：无数散落的二维漫画爆炸气泡、盖有“野生认证”钢印的荣誉证书贴纸、以及带有复古扫描线的效果光波特效。环境/空间：午后的城市涂鸦滑板场，带有彩绘水泥斜坡和金属管道。背景/嵌套层：一个倾斜的长方形嵌套面板，外形模仿复古红白机的游戏选人界面，内部显示另一个角色的像素像素剪影。服饰/造型细节：身穿大码（Oversized）极光绿与亮紫色撞色的街头风衣，戴着金属粗链条项链。主文本（大字汉字）：天生有才次要文本（辅助汉字）：摸鱼大师 / 沾枕头就睡强调符号：✨ 💥 [OK] !! ->【风格与视觉层级定向】一种高密度的潮流街头拼贴风格。画面包含超大动态主体、具备粗厚黑白双层包边的漫画对话框。文本采用极具力量感、带有飞白笔触的街头中文涂鸦手写字体，字形张扬。 【色彩矩阵规划】使用高亮极光绿、电光紫作为视觉核心，与水泥地面的深灰色、冷白色保持平衡。 【绝对避免】无真实品牌Logo、无创作者签名、无水印、无二维码。拒绝干净的极简主义布局、拒绝传统3D渲染、拒绝纯扁平矢量插画。无意外的压缩伪影、无肮脏模糊的像素噪点。',
+        environment_variables: {
+          ASPECT_RATIO: '16:9',
+          STYLE: 'Y2K街头贴纸拼贴/潮流街头涂鸦',
+
+        }
+      },
+      'case-16': {
+        style_name: '高端产品广告-影子叙事(华为MatePad Pro)',
+        style_slug: 'case-16',
+        style_version: '1.0.0',
+        style_summary: '以产品影子为叙事载体，MatePad Pro在戏剧性光源下影子转化为电影级场景，投射智慧创造概念。',
+        prompt: '主题：科技类 | 华为 MatePad Pro为 华为 打造一张高端产品广告海报，主体为 MatePad Pro。以产品的影子作为核心叙事载体。产品保持锐利、精准、高端感与视觉绝对主导。置于戏剧性可控光源下，影子转化为电影级场景，象征 智慧创造。投射智能、创造力、精准度与未来感之影。世界级 campaign 质感，电影级布光，真实阴影，高端细节，精致构图，得体排版，强烈视觉层级。添加一句贴合概念的 Slogan。标志性、精修感、刷屏级。避免抄袭现有 campaign。画幅比例：3:4',
+        environment_variables: {
+          ASPECT_RATIO: '3:4',
+          BRAND: '华为 MatePad Pro',
+          STYLE: '高端产品广告/影子叙事/电影级布光',
+
+        }
+      },
+      'case-17': {
+        style_name: '高端产品广告-影子防护叙事(薇诺娜防晒)',
+        style_slug: 'case-17',
+        style_version: '1.0.0',
+        style_summary: '清透防晒乳影子化为半透明极光色能量护盾，UV灼烧感与宁静对比，SPF50+防护概念。',
+        prompt: '为 薇诺娜 打造一张高端产品广告海报，主体为 清透防晒乳。以产品的影子作为核心叙事载体。产品本身必须保持锐利、精准、可辨识、高端感，并在视觉上占据绝对主导地位。将其置于戏剧性可控光源之下，使其影子转化为电影级场景——一道半透明的极光色能量护盾，护盾外是灼烧感的抽象紫外线波纹（以高饱和橙红渐变呈现），护盾内是柔和的自然光与一片宁静的草地。该影子象征产品的功能特性：SPF50+ 的硬核防护，将有害紫外线隔绝于肌肤之外。影子不可随机生成，必须揭示产品背后的隐藏故事：- 投射科技防护力、 invisible shield、肌肤自由呼吸之影画面需呈现世界级 campaign 海报质感：具备强力视觉钩子、电影级布光、真实阴影、高端产品细节、精致构图、得体字体排版与强烈的视觉层级。添加一句简短的三字 Slogan：「光无惧」最终效果须具备标志性、精修感、刷屏级吸引力，并针对该特定品牌与产品进行专属艺术指导。避免抄袭任何现有 campaign，创造全新的原创视觉概念。画幅比例：3:4',
+        environment_variables: {
+          ASPECT_RATIO: '3:4',
+          BRAND: '薇诺娜 清透防晒乳',
+          STYLE: '高端产品广告/影子叙事/功能隐喻',
+          SLOGAN: '光无惧',
+
+        }
+      },
+      'case-18': {
+        style_name: '高端宠物鲜粮品牌视觉-尾巴生活整只鸡主食罐',
+        style_slug: 'case-18',
+        style_version: '1.0.0',
+        style_summary: '科学养宠+成分透明化主视觉，暖杏黄品牌色，真实肉纤维纹理为中心，原料环绕叙事。',
+        prompt: '# 角色你是一位「高端宠物鲜粮品牌视觉系统架构师」，专精于将科学养宠DNA转化为可复用的图像生成指令。请基于以下结构化框架，生成一张「尾巴生活 FURRYTAIL」整只鸡主食罐的招牌主视觉海报。---## 一、品牌DNA锁（不可变常量）| 维度 | 锁定值 ||------|--------|| 品牌名 | 尾巴生活 FURRYTAIL || 色彩DNA | 暖杏黄 #F5E6C8 / 肉粉 #E8A0BF / 森林绿 #2E5C47 / 奶油白 #FAF7F0 / 炭灰 #4A4A4A || 排版气质 | 精致中文为主，英文为辅，温暖治愈，科学透明节奏 || 品牌调性 | 科学养宠、天然食材、温暖陪伴、成分透明 |---## 二、图像职责定义（本次变量）图像类型：招牌鲜粮主视觉 / 成分透明化海报 / 信任驱动品牌KV核心任务：建立原料透明 + 科学配比信任 + 天然新鲜感 + 宠物幸福感适用场景：电商详情首图 / 宠物展主视觉 / 社媒成分科普帖 / 订阅制宠物盒封面 / 宠物医院合作海报---## 三、构图控制（六维框架）### 3.1 视角与布局- 主视角：微俯拍 70°-80°，略带生活感的自然构图- 主体位置：画面中心偏左，占据视觉权重 50%-60%- 辅助元素布局：主体右侧及下方呈扇形展开，控制密度≤40%- 负空间：保留 25%-30% 呼吸空间，上方适当留白### 3.2 主体规范（鲜粮英雄）- 核心产品：一罐打开的主食罐（或一碗精致摆盘的生骨肉），肉质纹理清晰- 肉质质感：真实肉纤维可见，湿润但不油腻，新鲜切割感- 色泽呈现：鸡肉原色（粉白/浅黄）+ 内脏配比（深红/褐色），层次自然- 汤汁/肉冻：微量透明肉冻包裹肉块，增加食欲感- 容器细节：极简白瓷/玻璃宠物碗，或品牌定制罐身（标签清晰）- 光影效果：肉质表面有自然高光，肉纤维纹理清晰可见，形成"刚切开的新鲜感"### 3.3 成分叙事环（环绕元素，选 5-7 项）| 优先级 | 元素 | 呈现方式 ||--------|------|----------|| P0 | 整块鸡胸肉（带皮/去骨，展示原料） | 主体侧后方，暗示"整只鸡" || P0 | 三文鱼切片（橙粉色，油脂纹理） | 一侧摆放，增加Omega-3联想 || P1 | 新鲜蛋黄（半颗，金黄） | 点缀，增加营养感 || P1 | 营养补充剂（鱼油胶囊/牛磺酸粉小瓶） | 极简透明瓶，科学感 || P2 | 新鲜猫草/南瓜丁 | 增加天然纤维感 || P2 | 品牌餐垫（极简几何纹） | 碗下铺垫，增加仪式感 || P2 | 成分分析小卡片（极简设计） | 角落露出，透明化信任 |密度控制：每类元素不超过 2 个，总环绕元素 ≤ 12 个新鲜规则：所有食材必须呈现"刚准备好"状态，禁止罐头感/加工感---## 四、文案系统（最小化植入）### 4.1 主文案（必选其一，≤ 8 字）- "每一口，都是整只鸡"- "0胶0淀0诱食"- "尾巴生活"- "FURRYTAIL"### 4.2 副文案（可选，≤ 6 字）- "98%含肉量"- "主食级营养"- "透明配方"### 4.3 品牌标识（必选）- 主标："尾巴生活"（圆润黑体/定制字体，角落）- 辅标：英文 "FURRYTAIL"（如有需要，与中文同大或更小）### 4.4 排版规则- 文案区域 ≤ 画面 12%- 放置位置：右下角或左下角，不遮挡主体- 字间距宽松，行距 1.5 倍- 禁止尖锐字体，使用圆润黑体/无衬线体- 文字颜色：森林绿或炭灰，肉粉色仅用于极小点缀---## 五、光影与质感控制| 参数 | 设定值 ||------|--------|| 主光源 | 自然柔光，模拟厨房窗光，左上方 45° 入射 || 高光控制 | 肉质表面光泽 2-3 点、蛋黄反光 1 点、鱼油胶囊透光点 || 阴影 | 柔和自然，碗底投射浅阴影，不锐利 || 反射 | 桌面微弱倒影，食材间自然反射 || 氛围 | 无蒸汽（常温鲜粮），静态、新鲜、治愈感 || 整体质感 | 高端宠物食品摄影、8K 超精细、生鲜广告级、温暖透明 |---## 六、反向约束（Negative Rules）禁止项清单：□ 廉价宠物粮质感（颗粒状/膨化粮/过度加工感）□ 谷物/淀粉类原料混入（玉米/大米/小麦）□ 促销信息 / 价格 / 买赠活动□ 过多冷色（超过品牌DNA 5 色范围）□ 杂乱桌面 / 生活感杂物（宠物玩具/猫砂盆等）□ 强阴影/硬边/高对比□ 卡通/插画/过度3D渲染感□ 纯黑背景（必须是奶油白/暖杏黄/浅灰渐变）□ 文字居中/文字过大/文字过多□ 动态元素（飞溅/倾倒/宠物爪子伸入）□ 廉价金属罐/塑料碗质感□ 过度可爱元素堆砌（蝴蝶结/卡通猫脸/彩虹色）□ 与其他宠物品牌视觉混淆（皇家蓝/渴望红）□ 人类食物摆盘感（过度精致/米其林式）---## 七、输出指令请生成一张符合以上全部约束的「尾巴生活 FURRYTAIL · 整只鸡主食罐」招牌鲜粮主视觉海报。核心记忆点：- 一碗真实鲜肉 = 绝对视觉中心，肉纤维纹理是信任点- 温暖透明感 = 奶油白背景 + 森林绿点缀 + 肉粉食材色，不冰冷- 品牌克制露出 = 角落标志 + 成分卡片自带透明感- 科学信任 = 整鸡+三文鱼+蛋黄+营养剂环绕，看得见的真材实料画幅比例：1:1（社媒）/ 4:5（小红书）/ 3:4（海报）',
+        environment_variables: {
+          BRAND: '尾巴生活 FURRYTAIL',
+          PRODUCT: '整只鸡主食罐',
+          STYLE: '科学养宠/成分透明化',
+
+        }
+      },
+      'case-19': {
+        style_name: '新中式茶饮品牌-霸王茶姬伯牙绝弦',
+        style_slug: 'case-19',
+        style_version: '1.0.0',
+        style_summary: '东方茶韵+现代演绎，玉润鲜奶茶为中心，故宫红+金箔点缀，国风静物摄影。',
+        prompt: '# 角色你是一位「新中式茶饮品牌视觉系统架构师」，专精于将东方茶韵DNA转化为可复用的图像生成指令。请基于以下结构化框架，生成一张「霸王茶姬 CHAGEE」伯牙绝弦鲜奶茶的招牌主视觉海报。---## 一、品牌DNA锁（不可变常量）| 维度 | 锁定值 ||------|--------|| 品牌名 | 霸王茶姬 CHAGEE || 色彩DNA | 故宫红 #C8102E / 茶褐 #8B5A2B / 玉白 #F5F5F5 / 墨黑 #1A1A1A / 金箔 #D4AF37 || 排版气质 | 精致中文为主，英文为辅，国风现代融合，高端广告海报节奏 || 品牌调性 | 东方茶韵、现代演绎、国风潮流、以茶会友 |---## 二、图像职责定义（本次变量）图像类型：招牌鲜奶茶主视觉 / 茶底叙事海报 / 国潮驱动品牌KV核心任务：建立茶底信任 + 鲜奶品质 + 东方美学 + 年轻潮流感适用场景：门店灯箱海报 / 外卖平台头图 / 社媒新品首发 / 线下快闪店主视觉 / 联名 campaign---## 三、构图控制（六维框架）### 3.1 视角与布局- 主视角：微俯拍 75°-85°，略带动态感的非对称构图- 主体位置：画面中心偏右，占据视觉权重 55%-65%- 辅助元素布局：主体左侧及下方呈扇形展开，控制密度≤40%- 负空间：保留 25%-30% 呼吸空间，右侧或上方适当留白### 3.2 主体规范（茶饮英雄）- 核心产品：伯牙绝弦标志性杯装鲜奶茶，杯身品牌纹样清晰- 杯身质感：磨砂或半透明质感，品牌东方纹样隐约可见- 奶沫呈现：顶部奶沫细腻、洁白、微隆起，边缘自然过渡- 茶汤色泽：透过杯壁可见淡琥珀色茶底，层次分明- 杯盖细节：极简白色/透明盖，无多余装饰- 光影效果：杯身一侧有柔和高光，奶沫顶部有自然光泽，形成"玉润"质感### 3.3 茶底叙事环（环绕元素，选 5-7 项）| 优先级 | 元素 | 呈现方式 ||--------|------|----------|| P0 | 原叶茶底（茉莉雪芽/大红袍干茶） | 精致茶则盛放，展示真茶原叶 || P0 | 新鲜牛乳瓶/奶泡器局部 | 暗示鲜奶基底，玻璃质感 || P1 | 中式茶器（白瓷盖碗/公道杯） | 一侧摆放，增加东方仪式感 || P1 | 干花/花瓣（茉莉/玫瑰） | 点缀，与茶底呼应 || P2 | 茶马古道纹样延展（局部） | 背景隐约纹理，不抢眼 || P2 | 品牌纹样杯套/纸袋（局部） | 角落低调露出 || P2 | 竹制茶则/茶夹 | 增加东方器物质感 |密度控制：每类元素不超过 2 个，总环绕元素 ≤ 12 个层次规则：前景（茶杯）→ 中景（茶器/茶叶）→ 背景（隐约纹样），三层递进---## 四、文案系统（最小化植入）### 4.1 主文案（必选其一，≤ 6 字）- "伯牙绝弦"- "以茶会友"- "东方茶"- "CHAGEE"### 4.2 副文案（可选，≤ 5 字）- "茉莉雪芽"- "原叶鲜奶茶"- "真茶真奶"### 4.3 品牌标识（必选）- 主标："霸王茶姬"（精致宋体或定制字体，角落）- 辅标：英文 "CHAGEE"（如有需要，与中文同大或更小）### 4.4 排版规则- 文案区域 ≤ 画面 12%- 放置位置：左下角或右下角，不遮挡主体- 字间距宽松，行距 1.5 倍- 禁止粗黑体，使用精致宋体/细黑体/定制国风字体- 文字颜色：故宫红或墨黑，金箔色仅用于极小点缀---## 五、光影与质感控制| 参数 | 设定值 ||------|--------|| 主光源 | 自然柔光，模拟茶室窗光，右上方 45° 入射 || 高光控制 | 奶沫顶部光泽 1-2 点、杯身玻璃反光 2-3 点、茶汤透光点 || 阴影 | 柔和自然，杯底投射浅阴影，不锐利 || 反射 | 桌面微弱倒影，茶器间相互反射 || 氛围 | 无蒸汽（冷饮感），静态但年轻活力 || 整体质感 | 新中式静物摄影、8K 超精细、国潮广告级、玉润通透 |---## 六、反向约束（Negative Rules）禁止项清单：□ 传统珍珠/椰果等台式配料□ 西式咖啡元素混入□ 促销信息 / 价格 / 第二杯半价等□ 过多色彩（超过品牌DNA 5 色范围）□ 杂乱桌面 / 生活感杂物（手机/钥匙等）□ 强阴影/硬边/高对比□ 卡通/插画/过度3D渲染感□ 纯黑背景（必须是玉白/暖灰/浅茶色渐变）□ 文字居中/文字过大/文字过多□ 动态元素（飞溅/倾倒/流动）□ 廉价塑料杯质感□ 过度国风堆砌（龙/凤/大红大绿）□ 日式抹茶元素混淆---## 七、输出指令请生成一张符合以上全部约束的「霸王茶姬 CHAGEE · 伯牙绝弦」招牌鲜奶茶主视觉海报。核心记忆点：- 一杯玉润鲜奶茶 = 绝对视觉中心，东方纹样是识别点- 国潮高级感 = 玉白背景 + 故宫红点缀 + 金箔细节，不艳俗- 品牌克制露出 = 角落标志 + 杯身纹样自带品牌感- 茶底信任 = 原叶茶+鲜奶器具环绕，看得见的真材实料画幅比例：1:1（社媒）/ 3:4（海报）/ 9:16（短视频封面）# 角色你是一位「新中式茶饮品牌视觉系统架构师」，专精于将东方茶韵DNA转化为可复用的图像生成指令。请基于以下结构化框架，生成一张「霸王茶姬 CHAGEE」伯牙绝弦鲜奶茶的招牌主视觉海报。---## 一、品牌DNA锁（不可变常量）| 维度 | 锁定值 ||------|--------|| 品牌名 | 霸王茶姬 CHAGEE || 色彩DNA | 故宫红 #C8102E / 茶褐 #8B5A2B / 玉白 #F5F5F5 / 墨黑 #1A1A1A / 金箔 #D4AF37 || 排版气质 | 精致中文为主，英文为辅，国风现代融合，高端广告海报节奏 || 品牌调性 | 东方茶韵、现代演绎、国风潮流、以茶会友 |---## 二、图像职责定义（本次变量）图像类型：招牌鲜奶茶主视觉 / 茶底叙事海报 / 国潮驱动品牌KV核心任务：建立茶底信任 + 鲜奶品质 + 东方美学 + 年轻潮流感适用场景：门店灯箱海报 / 外卖平台头图 / 社媒新品首发 / 线下快闪店主视觉 / 联名 campaign---## 三、构图控制（六维框架）### 3.1 视角与布局- 主视角：微俯拍 75°-85°，略带动态感的非对称构图- 主体位置：画面中心偏右，占据视觉权重 55%-65%- 辅助元素布局：主体左侧及下方呈扇形展开，控制密度≤40%- 负空间：保留 25%-30% 呼吸空间，右侧或上方适当留白### 3.2 主体规范（茶饮英雄）- 核心产品：伯牙绝弦标志性杯装鲜奶茶，杯身品牌纹样清晰- 杯身质感：磨砂或半透明质感，品牌东方纹样隐约可见- 奶沫呈现：顶部奶沫细腻、洁白、微隆起，边缘自然过渡- 茶汤色泽：透过杯壁可见淡琥珀色茶底，层次分明- 杯盖细节：极简白色/透明盖，无多余装饰- 光影效果：杯身一侧有柔和高光，奶沫顶部有自然光泽，形成"玉润"质感### 3.3 茶底叙事环（环绕元素，选 5-7 项）| 优先级 | 元素 | 呈现方式 ||--------|------|----------|| P0 | 原叶茶底（茉莉雪芽/大红袍干茶） | 精致茶则盛放，展示真茶原叶 || P0 | 新鲜牛乳瓶/奶泡器局部 | 暗示鲜奶基底，玻璃质感 || P1 | 中式茶器（白瓷盖碗/公道杯） | 一侧摆放，增加东方仪式感 || P1 | 干花/花瓣（茉莉/玫瑰） | 点缀，与茶底呼应 || P2 | 茶马古道纹样延展（局部） | 背景隐约纹理，不抢眼 || P2 | 品牌纹样杯套/纸袋（局部） | 角落低调露出 || P2 | 竹制茶则/茶夹 | 增加东方器物质感 |密度控制：每类元素不超过 2 个，总环绕元素 ≤ 12 个层次规则：前景（茶杯）→ 中景（茶器/茶叶）→ 背景（隐约纹样），三层递进---## 四、文案系统（最小化植入）### 4.1 主文案（必选其一，≤ 6 字）- "伯牙绝弦"- "以茶会友"- "东方茶"- "CHAGEE"### 4.2 副文案（可选，≤ 5 字）- "茉莉雪芽"- "原叶鲜奶茶"- "真茶真奶"### 4.3 品牌标识（必选）- 主标："霸王茶姬"（精致宋体或定制字体，角落）- 辅标：英文 "CHAGEE"（如有需要，与中文同大或更小）### 4.4 排版规则- 文案区域 ≤ 画面 12%- 放置位置：左下角或右下角，不遮挡主体- 字间距宽松，行距 1.5 倍- 禁止粗黑体，使用精致宋体/细黑体/定制国风字体- 文字颜色：故宫红或墨黑，金箔色仅用于极小点缀---## 五、光影与质感控制| 参数 | 设定值 ||------|--------|| 主光源 | 自然柔光，模拟茶室窗光，右上方 45° 入射 || 高光控制 | 奶沫顶部光泽 1-2 点、杯身玻璃反光 2-3 点、茶汤透光点 || 阴影 | 柔和自然，杯底投射浅阴影，不锐利 || 反射 | 桌面微弱倒影，茶器间相互反射 || 氛围 | 无蒸汽（冷饮感），静态但年轻活力 || 整体质感 | 新中式静物摄影、8K 超精细、国潮广告级、玉润通透 |---## 六、反向约束（Negative Rules）禁止项清单：□ 传统珍珠/椰果等台式配料□ 西式咖啡元素混入□ 促销信息 / 价格 / 第二杯半价等□ 过多色彩（超过品牌DNA 5 色范围）□ 杂乱桌面 / 生活感杂物（手机/钥匙等）□ 强阴影/硬边/高对比□ 卡通/插画/过度3D渲染感□ 纯黑背景（必须是玉白/暖灰/浅茶色渐变）□ 文字居中/文字过大/文字过多□ 动态元素（飞溅/倾倒/流动）□ 廉价塑料杯质感□ 过度国风堆砌（龙/凤/大红大绿）□ 日式抹茶元素混淆---## 七、输出指令请生成一张符合以上全部约束的「霸王茶姬 CHAGEE · 伯牙绝弦」招牌鲜奶茶主视觉海报。核心记忆点：- 一杯玉润鲜奶茶 = 绝对视觉中心，东方纹样是识别点- 国潮高级感 = 玉白背景 + 故宫红点缀 + 金箔细节，不艳俗- 品牌克制露出 = 角落标志 + 杯身纹样自带品牌感- 茶底信任 = 原叶茶+鲜奶器具环绕，看得见的真材实料画幅比例：1:1（社媒）/ 3:4（海报）/ 9:16（短视频封面）',
+        environment_variables: {
+          BRAND: '霸王茶姬 CHAGEE',
+          PRODUCT: '伯牙绝弦鲜奶茶',
+          STYLE: '东方茶韵/现代演绎/国潮静物摄影',
+
+        }
+      },
+      'case-20': {
+        style_name: '超饱和活力-益达无糖口香糖商业海报',
+        style_slug: 'case-20',
+        style_version: '1.0.0',
+        style_summary: '铁盒产品+手绘插画能量宇宙，波普艺术风格，清新薄荷绿色调，俏皮圆润字体。',
+        prompt: '请生成一张超饱和活力的益达无糖口香糖商业海报。画面正中央放置一盒高度逼真的益达无糖口香糖铁盒包装——扁平方形金属铁盒，翻盖设计，薄荷绿主色盒身，高级光泽印刷，商业级产品渲染。背景为手绘插画能量宇宙：从铁盒后方环形爆发，飞舞彩色口香糖片（薄荷绿、冰蓝、柠檬黄、草莓粉）、薄荷叶片飞溅、清凉冰晶轨迹、漫画冲击爆裂、弹跳弧线、闪电星星、笑脸涂鸦、速度条纹，粗黑轮廓线，波普艺术风格。背景主色域为清新薄荷绿，插画爆发冰晶蓝与糖果色。字体俏皮圆润：主标题「Extra」，副标题「MINI PACK, FRESH BURST」，行动语「POP. CHEW. FRESH.」，中文艺术字「小小一盒，清新爆开」。整体氛围：俏皮、高饱和、动感、年轻、波普艺术、清凉、充满能量。画幅 3:4，8K 高端商业品质。禁止：软袋包装、纸盒、写实背景、暗淡色、弱动感、杂乱布局、低饱和度、模糊产品、廉价卡通、过多文字、暗沉氛围。',
+        environment_variables: {
+          ASPECT_RATIO: '3:4',
+          BRAND: 'Extra 益达',
+          STYLE: '波普艺术/手绘插画能量宇宙/超饱和活力',
+
+        }
+      },
+      'case-21': {
+        style_name: '超饱和活力-京都念慈菴润喉糖商业海报',
+        style_slug: 'case-21',
+        style_version: '1.0.0',
+        style_summary: '袋装产品+手绘插画能量宇宙，传统与现代交融，草本绿+深红+琥珀金色。',
+        prompt: '请生成一张超饱和活力的京都念慈菴润喉糖商业海报。画面正中央放置一袋高度逼真的京都念慈菴润喉糖袋装包装——自立袋，自封拉链，深红主色哑光袋面，金色品牌标识，传统纹样底纹，高级光泽印刷，商业级产品渲染。背景为手绘插画能量宇宙：从袋装后方环形爆发，飞舞琥珀色润喉糖、金色蜂蜜飞溅、草本叶片（枇杷叶、甘草、罗汉果）、温暖光晕轨迹、传统祥云涂鸦、漫画冲击爆裂、弹跳弧线、星星、迷你灯笼、速度条纹，粗黑轮廓线，波普艺术风格。背景主色域为草本绿，插画爆发深红与琥珀金色。字体传统与现代融合：主标题「京都念慈菴」，副标题「SOFT PACK, HERBAL COMFORT」，行动语「POP. SUCK. RELIEF.」，中文艺术字「随手一袋，温润入喉」。整体氛围：温暖、高饱和、动感、传统与现代交融、波普艺术、治愈、充满能量。画幅 3:4，8K 高端商业品质。禁止：软袋包装、纸盒、写实背景、暗淡色、弱动感、杂乱布局、低饱和度、模糊产品、廉价卡通、过多文字、暗沉氛围。',
+        environment_variables: {
+          ASPECT_RATIO: '3:4',
+          BRAND: '京都念慈菴',
+          STYLE: '传统与现代交融/波普艺术治愈',
+
+        }
+      },
+      'case-22': {
+        style_name: '苔藓绿越野运动 · 晨雾竹梯田',
+        style_slug: 'case-22',
+        style_version: '1.0.0',
+        style_summary: '极端低角度仰拍，女性越野跑单膝蹲姿，苔藓绿+油菜花黄品牌色，晨雾竹林梯田背景，TRAIL SOUL满版排版。',
+        prompt: '请以以下构图生成一张运动时尚的人物纵向照片（9:16）。■ STEP 0：账户颜色绑定- 主色：苔藓绿 #4A7C59 — 运动服线条、领子、拉链、侧边- 强调色：油菜花黄 #F4D03F — 越野跑鞋鞋底/部件点缀■ 相机・构图- 极端低角度仰拍（贴近湿润泥土地面/广角镜头风格）- 女性人物单膝抬起蹲姿，前伸越野跑鞋在画面前景大幅显现- 视线：鞋子 → 腿 → 上半身 → 晨雾薄云天空■ 人物・时尚- 套装运动服（白底），袖子线条、领子、拉链、侧边使用苔藓绿- 高科技越野跑鞋，油菜花黄点缀，成为前景最显眼色- 强调小物件：运动头带+越野手表- 冷静自信的表情，山野自由感■ 背景・地点- 竹林梯田小径：晨雾缭绕竹林、层层叠叠油菜花田、泥土小径延伸向远方- 天空呈现晨雾薄云（柔和散射光+薄雾氛围）- 竹林/梯田保持自然绿色/黄色，苔藓绿仅用于竹叶边缘光、梯田轮廓线、晨雾光晕勾勒。禁止山野大面积染成苔藓绿- 清晨散射光+薄雾柔光■ 地面质感- 湿润泥土+晨露青草+散落油菜花花瓣，周围竹林、晨雾、人物、文字清晰呈现- 泥土中苔藓绿光斑与油菜花黄光斑与人物倒影交织- 上下呼应的对称构图■ 排版（人物后面・竹林前面・中间层）- 英文单词：「TRAIL SOUL」+「INTO THE WILD」- IMPACT字体・横排・极粗体・苔藓绿单色- 画面宽度满版巨大尺寸，TRAIL SOUL较大- 人物/膝盖/运动鞋自然遮挡文字边缘，TRAIL SOUL保持可读- 泥土地面微微反射苔藓绿文字- 海报/专辑封面级突出感■ 自检1. TRAIL SOUL是否未被过度遮挡，在晨雾薄云+清晨散射光下保持可读2. 竹林梯田是否未被苔藓绿过度染色，竹叶/油菜花/泥土保持自然色3. 天空是否呈现晨雾薄云氛围，与清晨散射光统一',
+        environment_variables: {
+          ASPECT_RATIO: '9:16',
+          COLOR: '苔藓绿 #4A7C59 + 油菜花黄 #F4D03F',
+          STYLE: '极端低角度仰拍/运动时尚/晨雾竹林梯田',
+
+        }
+      },
+      'case-23': {
+        style_name: '朱砂红东方运动 · 飞檐玻璃建筑',
+        style_slug: 'case-23',
+        style_version: '1.0.0',
+        style_summary: '极端低角度仰拍，男性运动蹲姿，朱砂红+鎏金品牌色，飞檐玻璃建筑水墨暮云背景，破界BREAKTHROUGH排版。',
+        prompt: '请以以下构图生成一张运动时尚的人物纵向照片（9:16）。■ STEP 0：账户颜色绑定- 主色：朱砂红 #C23A30 — 运动服线条、领子、拉链、侧边- 强调色：鎏金 #D4AF37 — 运动鞋鞋底/部件点缀■ 相机・构图- 极端低角度仰拍（贴近青石板地面/广角镜头风格）- 男性人物单膝抬起蹲姿，前伸运动鞋在画面前景大幅显现- 视线：鞋子 → 腿 → 上半身 → 水墨渐变暮云天空■ 人物・时尚- 套装运动服（玄黑底），袖子线条、领子、拉链、侧边使用朱砂红- 高科技运动鞋，鎏金点缀，成为前景最显眼色- 强调小物件：玉质运动手环- 冷静自信的表情，东方力量感■ 背景・地点- 飞檐玻璃混合建筑群：传统中式飞檐屋顶与现代玻璃幕墙交错- 天空呈现水墨渐变暮云（灰蓝→淡紫→暮橙宣纸晕染感）- 建筑玻璃面保持自然色，朱砂红仅用于飞檐轮廓、窗框、屋檐翘角、玻璃边缘反射光。禁止建筑大面积染成朱砂红- 黄昏侧逆光+鎏金轮廓光■ 地面质感- 青石板+水雾镜面，飞檐建筑、水墨暮云、人物、文字清晰反射- 石板缝隙中朱砂红光斑与鎏金光斑与人物倒影交织- 上下呼应的对称构图■ 排版（人物后面・飞檐建筑前面・中间层）- 第一层（最大）：「破界」—— 书法体/粗黑，朱砂红单色- 第二层（中等）：BREAKTHROUGH —— IMPACT，鎏金单色- 第三层（较小）：「不止步」NEVER SETTLE —— 中文粗黑+英文IMPACT混排，白色单色- 配置层为"人物后面・飞檐建筑前面"中间位置- 人物/膝盖/运动鞋自然遮挡文字边缘，「破界」不被完全遮挡，保持可读- 画面宽度满版巨大尺寸，「破界」最大，BREAKTHROUGH中等，底部标语较小- 青石板水雾地面微微反射文字- 海报/专辑封面级突出感■ 自检1. 「破界」是否未被过度遮挡，在水墨暮云+黄昏侧逆光下保持可读2. 飞檐建筑群是否未被朱砂红过度染色，玻璃面保持自然色3. 天空是否呈现水墨渐变暮云氛围，与黄昏侧逆光统一4. 中英混排层级是否清晰：「破界」> BREAKTHROUGH > 「不止步」NEVER SETTLE',
+        environment_variables: {
+          ASPECT_RATIO: '9:16',
+          COLOR: '朱砂红 #C23A30 + 鎏金 #D4AF37',
+          STYLE: '极端低角度仰拍/东方运动/飞檐玻璃建筑',
+
+        }
+      },
+      'case-24': {
+        style_name: 'Nike Air Force 1 · 2x2四格涂鸦广告',
+        style_slug: 'case-24',
+        style_version: '1.0.0',
+        style_summary: '2x2等分四格高端广告，精致黑白手绘涂鸦+真实产品混搭，云端漫步/街头滑板/音乐节拍/城市天际四个场景。',
+        prompt: '请生成一张高端2×2网格广告海报，为 Nike Air Force 1 创作。【版式】2×2等分四格，方形面板，均匀对齐，细微间距，统一视觉节奏。【背景】极简暖调米白纸纹，大量干净留白。【风格】精致黑白手绘涂鸦插画 + 真实产品摄影混搭，高端商业插画质感。面板1 — 云端漫步：经典纯白 Nike Air Force 1 化作漂浮的云端踏脚石，手绘蓬松云朵托着球鞋向上飘浮，小鸟环绕，气流线轻盈流动，小梯子从云间垂下。纯白鞋身在云海中格外醒目。面板2 — 街头滑板：Nike AF1 鞋底变成滑板坡道，黑色线条涂鸦角色在鞋面弧线上滑行，运动线、星星、小旗帜、街头涂鸦符号环绕，Swoosh 标志化作坡道边缘的动感曲线，强烈街头能量。面板3 — 音乐节拍：Nike AF1 鞋身化作 DJ 打碟台，手绘声波从鞋面扩散，迷你音符跳动，舞动线条环绕，鞋带头变成打碟手臂，迷你人群在鞋边起舞，活泼有力但视觉干净。面板4 — 城市天际：多只 Nike AF1 堆叠成摩天大楼轮廓，手绘窗户灯光点亮鞋身，小飞机穿梭云层，城市天际线在背景延伸，鞋带孔变成建筑窗户，Swoosh 化作建筑立面线条，想象力与都市感爆棚。【产品要求】经典纯白 Nike Air Force 1 低帮为每格视觉主角，真实、光泽、高端、一眼可辨，强体积感、皮革纹理、阴影、高光、清晰品牌识别度。纯白鞋身 + 黑色 Swoosh 为唯一强色彩对比，以云朵踏脚石/滑板坡道/DJ台/摩天楼等拟物形态参与互动。【涂鸦要求】优雅、克制、机智、构图精巧，干净黑色墨水线条，精致卡通极简主义，柔和幽默，微妙视觉叙事，与产品巧妙融合非粘贴。涂鸦风格偏向街头但不粗糙，保持高端感。【字体排版】中英双语混搭，编辑感、轻盈、高端："Nike" / "耐克" / "Just Do It" / "只管去做" / "One Shoe, Four Moves" / "四格同频律动" / "街头正在发生"【整体氛围】机智、清新、动感、设计感强、视觉互动性高，高端 campaign 看板，街头但精致，8K、超精细、独特、令人难忘。【禁止】杂乱版式、幼稚涂鸦、廉价设计、变形鞋型、暗色背景、随机色彩、弱互动、扁平构图、普通运动鞋广告、不可读文字、低端插画、荧光色、渐变发光。',
+        environment_variables: {
+          PRODUCT: 'Nike Air Force 1',
+          STYLE: '2x2四格/黑白涂鸦+产品摄影混搭/高端广告',
+
+        }
+      },
+      'case-25': {
+        style_name: 'Cheetos 奇多 · 2x2四格野性广告',
+        style_slug: 'case-25',
+        style_version: '1.0.0',
+        style_summary: '2x2等分四格广告，精致黑白涂鸦+产品混搭+独立情绪色板，丛林/赛道/火山/舞池四个野性场景。',
+        prompt: '请生成一张高端2×2网格广告海报，为 Cheetos 奇多创作。【版式】2×2等分四格，方形面板，均匀对齐，细微间距，统一视觉节奏。【背景】暖调米白纸纹，大量干净留白。【风格】精致黑白手绘涂鸦插画 + 真实产品摄影混搭 + 四格独立情绪色板，高端零食品牌插画质感。面板1 — 猎豹丛林（色板：亮橙 + 丛林绿 + 香蕉黄）：经典 Cheetos 豹纹包装袋化作茂密丛林的树冠，亮橙色脆条从袋口如瀑布般倾泻，手绘藤蔓缠绕袋身，热带鸟停驻袋口，香蕉串悬挂，猎豹尾巴从袋后俏皮探出。丛林绿叶片层层叠叠，香蕉黄果实点缀其间，亮橙色脆条如阳光穿透叶缝。色彩热烈野性，丛林感浓郁但不杂乱。面板2 — 火焰赛道（色板：亮橙 + 火焰红 + 沥青灰）：Cheetos 亮橙色脆条弯曲成赛车跑道，手绘迷你赛车在脆条弯道上漂移，火焰尾迹从车尾喷涌，格子旗在终点挥舞，观众剪影欢呼。火焰红尾迹与亮橙色脆条融为一体，沥青灰赛道基底沉稳。色彩动感爆裂，速度感强烈但 controlled。面板3 — 芝士火山（色板：亮橙 + 熔岩红 + 烟灰）：Cheetos 豹纹袋倒置于火山口，袋口喷涌芝士岩浆，手绘火山轮廓雄伟，芝士流如熔岩般流淌，气泡在岩浆中升腾，迷你探险者背着脆条登山包仰望。熔岩红与亮橙色芝士交融，烟灰火山岩冷静对比。色彩浓烈炽热，冒险感爆棚。面板4 — 霓虹舞池（色板：亮橙 + 电紫 + 霓虹粉）：Cheetos 亮橙色脆条排列成音波射线，从中心向外扩散，手绘迪斯科球在上方旋转，音符跳跃，舞步线勾勒迷你舞者，聚光灯从脆条间隙穿透。电紫背景深邃神秘，霓虹粉光斑闪烁，亮橙色脆条成为舞池中最耀眼的节奏线。色彩最丰富的一格，派对感强烈但高级不廉价。【产品要求】经典 Cheetos 豹纹包装袋 + 亮橙色脆条为每格视觉主角，真实、光泽、高端、一眼可辨，强体积感、脆条纹理清晰、阴影、高光、品牌识别度。豹纹袋 + 亮橙色脆条为统一产品锚点，以丛林树冠/赛车跑道/火山口/音波射线等拟物形态参与互动。Chester 猎豹形象可 subtle 出现（尾巴、剪影、爪印）。【涂鸦要求】优雅、克制、机智、构图精巧，干净黑色墨水线条，精致卡通极简主义，柔和幽默，微妙视觉叙事，与产品巧妙融合非粘贴。涂鸦线条保持黑色统一，但每格内部填充色和点缀色按独立色板执行，精致不粗糙，保持零食品牌高端感。【色彩规则】- 每格拥有独立情绪色板（3色），与主题深度绑定- 豹纹袋 + 亮橙色脆条 + 黑色涂鸦线条为全局统一锚点- 色彩丰富热烈但不杂乱，每格有明确主色 + 辅色 + 点缀色- 禁止荧光刺眼、禁止无逻辑彩虹色堆砌、禁止破坏高端感- 色彩走向野性丛林/速度火焰/炽热火山/霓虹派对四个方向，各有性格【字体排版】中英双语混搭，编辑感、轻盈、高端："Cheetos" / "奇多" / "Dangerously Cheesy" / "危险地好吃" / "One Bag, Four Wild Rides" / "四格野性之旅" / "脆趣正在发生"【整体氛围】机智、野性、热烈、色彩丰富、设计感强、视觉互动性高，高端 campaign 看板，俏皮但高级，8K、超精细、独特、令人难忘。【禁止】杂乱版式、幼稚涂鸦、廉价设计、变形包装、暗色背景、随机色彩、弱互动、扁平构图、普通零食广告、不可读文字、低端插画、无逻辑彩虹色堆砌、荧光刺眼、破坏高端感、过度装饰。',
+        environment_variables: {
+          PRODUCT: 'Cheetos 奇多',
+          STYLE: '2x2四格/涂鸦+产品+独立情绪色板/高端零食广告',
+
+        }
+      },
+      'case-1': {
+        style_name: '街头拼贴 · 撕纸肌理 — 世界杯观赛海报',
+        style_slug: 'street-collage-world-cup',
+        style_version: '1.0.0',
+        style_summary: '高明度清透的潮流人物视觉，偶像卡片 × 街头贴纸 × 复古电脑界面的混合设计。纯白底场 + 草绿泡泡字 + 黑色线框 + 火炬红强调点，像素弹窗与手绘符号围绕人物散落分布，前景人物与后场图形互相咬合。',
+        prompt: '围绕「2026世界杯观赛指南」主题生成一张高明度清透的潮流人物视觉，主体以清晰抠像照片或拟真人像置于画面中轴偏前，人物边缘干净、皮肤与服装保留真实光泽，身体局部自然压住后方字形，形成前景人物与后场图形互相咬合的层次。主标题做成极大尺度泡泡字，圆鼓、厚重、略带手绘变形，粗黑外轮廓与局部内侧阴影提供结构，字腔使用来自绿茵场活力身份的明亮草绿色（#02B906 / #3CAC3B），表面叠加白色弧形高光、透明渐层和轻微亮面质感，保持明亮轻快、清透干净、通风感强的色光状态。色彩从世界杯主题提取并映射为：大面积纯白浅亮底场（#FFFFFF）、草绿主色泡泡字（#02B906）、黑色信息线框（#000000）、白色高光、少量火炬红高饱和暖色强调点（#E61D25）和中性深灰正文信息（#474A4A），维持大面积明亮、少量醒目点缀、清晰色阶与干净边界，不做灰浊旧化处理。画面加入低密度的像素弹窗、细长进度条、条码、棋盘格角标、短小说明文字、姓名标签和手绘星芒爱心符号；这些元素像散落的桌面界面贴纸一样围绕人物与标题分布，字号层级明确，粗体标题、窄排小字、像素字体与手写线条并置。整体完成度要像偶像卡片、街头贴纸和复古电脑界面的混合设计，边线利落，留白充足，信息装饰有节奏，不把人物淹没在装饰里。',
+        environment_variables: {
+          SUBJECT: '一位年轻球迷半身正面，穿球队球衣或休闲运动装，清晰抠像照片质感，边缘干净',
+          SUBJECT_ACTION: '手持小国旗或做出加油手势，身体局部自然压住后方字形，形成前景人物与后场图形互相咬合的层次',
+          PRODUCT_OR_PROP: '小国旗、球队围巾、应援手环、赛事纪念徽章',
+          LOCATION: '极简明亮白底直播间 / 公众号头图背景，大面积留白，通风感强',
+          BACKGROUND_ELEMENTS: '低密度像素弹窗、细长进度条、条码、棋盘格角标、短小说明文字、姓名标签和手绘星芒爱心符号，像散落的桌面界面贴纸围绕人物与标题分布',
+          MAIN_TEXT: '「今晚看球不加班」—— 极大尺度泡泡字，圆鼓、厚重、略带手绘变形，粗黑外轮廓与局部内侧阴影，字腔使用明亮草绿色（#02B906 / #3CAC3B），表面叠加白色弧形高光、透明渐层和轻微亮面质感',
+          SECONDARY_TEXT: '小窗信息：6.11–7.19 赛事周期 ｜ 48 队 104 场 ｜ 熬夜观赛攻略 ｜ 零食酒水清单；角落加活动名「WE ARE 26 观赛夜」和直播 / 预约入口',
+          ACCENT_ELEMENTS: '手绘星芒 ★、爱心符号 ♥、圆点分隔符 ·、像素图标、姓名标签',
+          WARDROBE_STYLE: '球队球衣透气网眼面料的光泽、休闲运动装的棉质哑光纹理、皮肤保留真实光泽',
+          STYLE_FIDELITY_ANCHORS: '① 视角：中轴偏前，人物半身正面，清晰抠像边缘 ② 前景：人物身体压住后方字形，前后咬合层次 ③ 主体：偶像卡片 + 街头贴纸 + 复古电脑界面混合 ④ 排版：粗体标题、窄排小字、像素字体、手写线条并置 ⑤ 字体：泡泡字圆鼓手绘变形，粗黑外轮廓 + 内侧阴影 ⑥ 色调：纯白底 #FFFFFF + 草绿 #02B906 + 黑色线框 #000000 + 火炬红强调 #E61D25 + 深灰信息 #474A4A ⑦ 平台元素：像素弹窗、进度条、条码、棋盘格、说明文字',
+          SOURCE_CONTENT_TO_AVOID: '灰浊旧化处理、博彩或赌球诱导信息、国旗滥用、过度政治化元素、传统中式喜庆配色',
+          ASPECT_RATIO: '16:9'
+        }
+      },
+      'case-2': {
+        style_name: 'Jade Glyph Grocer Collage Poster Style',
+        style_slug: 'jade-glyph-grocer-collage-poster-style',
+        style_version: '1.0.0',
+        style_summary: 'A sparse East Asian grocer-poster system built from warm cream paper, oversized carrot-orange hand-cut glyphs, pale botanical silhouette clouds, tiny editorial headers, and one glossy produce-photo centerpiece layered over the typography.',
+        prompt: '角色设定：你是一位「Jade Glyph Grocer Collage Poster Style」的锁定执行专家，专精东亚洲杂货海报风格的电商封面生成。任务：创作一张 9:16 比例的种草封面，采用奶油纸基底 + 超大胡萝卜橙手刻汉字 + 淡色植物剪影 + 微型编辑标题的视觉系统。\n\n风格锚点：奶油纸基底纹理、胡萝卜橙手刻字的裁切毛边、光泽表皮与哑光豆泥的质感对比、微型编辑信息的层级错落、缨叶剪影的淡色呼吸感。\n\n画面内容：主体为一束新鲜手指胡萝卜带绿叶（其中一根被咬开露出脆嫩截面），排列在赤陶碗中，静物侧面角度，咬开的胡萝卜朝前汁液光泽可见，捕捉午后零食渴望。散落的胡萝卜缨、一小碟鹰嘴豆泥、手写标签「生食·脆爽」。极简午后书桌角落，自然窗光，大面积留白。背景包含淡色胡萝卜缨剪影、微型β-胡萝卜素含量标签、护眼认证印章、午后零食编辑注脚。\n\n排版与文字：主标题「护眼燃料」—— 超大号胡萝卜橙手刻粗体汉字，边缘带裁切毛边，部分笔画被胡萝卜缨遮挡。顶部微型编辑标题「屏幕时间零食系列 No.3」；底部小号说明「手指胡萝卜·鹰嘴豆泥｜β-胡萝卜素 8mg｜维生素A 120% DV｜15:00 零食」。点缀元素：小型圆点分隔符「·」、方形护眼认证印章、括号标注「(生食)」。\n\n质感要求：赤陶碗的粗粝土质感、胡萝卜光泽光滑表皮、鹰嘴豆泥的creamy哑光表面，无塑料零食袋。\n\n严格避免：直接复刻原始杂货店场景、加工胡萝卜脆片或糖果、过度饱和的荧光色、传统中式喜庆元素。',
+        environment_variables: {
+          SUBJECT: '一束新鲜手指胡萝卜带绿叶，其中一根被咬开露出脆嫩截面，排列在赤陶碗中',
+          SUBJECT_ACTION: '静物侧面角度，咬开的胡萝卜朝前，汁液光泽可见，捕捉午后零食渴望',
+          PRODUCT_OR_PROP: '散落的胡萝卜缨、一小碟鹰嘴豆泥、手写标签「生食·脆爽」',
+          LOCATION: '极简午后书桌角落，自然窗光，大面积留白',
+          BACKGROUND_ELEMENTS: '淡色胡萝卜缨剪影、微型β-胡萝卜素含量标签、护眼认证印章、午后零食编辑注脚',
+          MAIN_TEXT: '「护眼燃料」—— 超大号胡萝卜橙手刻粗体汉字，边缘带裁切毛边，部分笔画被胡萝卜缨遮挡',
+          SECONDARY_TEXT: '顶部微型编辑标题「屏幕时间零食系列 No.3」；底部小号说明「手指胡萝卜·鹰嘴豆泥｜β-胡萝卜素 8mg｜维生素A 120% DV｜15:00 零食」',
+          ACCENT_SYMBOL: '小型圆点分隔符「·」、方形护眼认证印章、括号标注「(生食)」',
+          WARDROBE_STYLE: '赤陶碗的粗粝土质感、胡萝卜光泽光滑表皮、鹰嘴豆泥的creamy哑光表面，无塑料零食袋',
+          STYLE_FIDELITY_ANCHORS: '奶油纸基底纹理、胡萝卜橙手刻字的裁切毛边、光泽表皮与哑光豆泥的质感对比、微型编辑信息的层级错落、缨叶剪影的淡色呼吸感',
+          SOURCE_CONTENT_TO_AVOID: '直接复刻原始杂货店场景、加工胡萝卜脆片或糖果、过度饱和的荧光色、传统中式喜庆元素',
+          ASPECT_RATIO: '9:16'
+        }
+      },
+      'case-3': {
+        style_name: '高级概念拼贴海报 — 情绪消费 · 按件计费',
+        style_slug: 'premium-collage-poster-editorial',
+        style_version: '1.0.0',
+        style_summary: '顶级编辑设计总监操刀的高级概念海报。手撕拼贴、编辑排版、复古印刷肌理、多材质叠加、强标题、图像隐喻、手工痕迹与设计秩序。主题驱动配色，拒绝默认怀旧惯性。',
+        prompt: '你是一名顶级编辑设计总监、先锋拼贴艺术家、杂志封面视觉导演、字体海报设计师、复古印刷美术指导。\n\n请根据用户输入的任何内容，直接创作一张高级概念海报。不要要求用户填写固定参数，不要机械套模板。先理解文字中的主题、气质、情绪、行业属性、冲突关系、语义温度与使用场景，再决定画面的视觉语言。\n\n海报应具有：手撕拼贴、编辑排版、复古印刷肌理、多材质叠加、强标题、图像隐喻、手工痕迹与设计秩序。但这些只是方法，不是固定外观。不要把"拼贴"自动做成旧报纸风。旧报纸、黑白新闻纸、审判感红标、档案感票据，只在适合社会议题、讽刺、观点、历史、调查、冲突类主题时出现。若主题偏成长、科技、写作、女性、城市、社群、方法、感受、未来、梦境或生活方式，就应主动生成更匹配的底层视觉母体，例如笔记纸、手册纸、屏幕界面、丝网印刷色块、地图、纤维纸、布料、海报残片、摄影留白、柔和纸艺、街头贴墙或极简编辑底面。\n\n配色必须智能生成，而不是默认怀旧。若用户指定颜色，则绝对优先；若未指定，请根据主题自动决定。颜色应从文字的情绪和内容自然长出来：冷静或知识型可更克制清透，热烈或冲突型可更强对比，温柔或自我型可更柔和有呼吸，都市或文化型可更时髦精炼，实验或前卫型可更大胆但仍有秩序。每张图都应拥有独立的配色人格，避免所有主题都落入米黄、灰黑、旧红的惯性。可以有复古质感，但不能只有一种复古。主色数量宜精而准，形成清晰层级与记忆点，不要满屏平均用力。\n\n主标题必须是第一视觉，并拥有绝对阅读权。它可以撕裂、错位、压印、局部遮挡、融入隐喻，但必须清楚、强烈、可辨。若输入较长，请自动提炼出最有力量的核心词作为大标题，同时保留完整原意作为副标题或信息层。所有明确给出的专有名词、品牌名、人名、活动名必须准确无误。\n\n字体不是普通排字，而是主题的一部分。请根据内容为标题设计恰当个性：可以把批注、删改、索引、纤维、花、路线、断裂、光标、票据码、邮戳、地图线、窗口光等元素巧妙融入局部笔画，但不要过度装饰，不要牺牲识别度。\n\n图像、纸片、标签、照片与文字必须彼此发生关系，但不能互相吞没。背景和纹理必须服务主体，进入标题区域时要自动减弱。暗部要有层次，不要死黑；质感要真实，不要脏乱；复杂要有呼吸，不要堆满。\n\n请始终根据主题变化风格，而不是重复同一种海报。让每张作品都保有统一的高级拼贴方法，同时拥有属于该主题自己的颜色、材质、气味、节奏与视觉性格。\n\n严格避免：默认旧报纸套皮、颜色千篇一律、文字不清、纹理压字、素材乱堆、标题被吞没、假复古、廉价朋克、AI机器人脸、蓝紫霓虹、电商感、PPT感、模板感、伪文字、错别字。\n\n请直接生成最终海报画面，不要输出分析，不要解释，不要反问。\n\n本次用户输入：\n情绪消费，按件计费\n\n适合做自媒体封面标题，所有文字一目了然',
+        environment_variables: {
+          TOPIC: '情绪消费，按件计费',
+          USE_CASE: '自媒体封面标题，所有文字一目了然',
+          STYLE_NOTE: '主题驱动配色与材质选择，拒绝默认旧报纸惯性'
+        }
+      },
+      'case-4': {
+        style_name: 'AI应用封面美学 — Vibe Coding 插件推荐',
+        style_slug: 'vibe-coding-plugin-recommendation-card',
+        style_version: '1.0.0',
+        style_summary: '苹果式克制 × 高桥流凝练 × 创意爆款风。超大字主标题 + 荧光柠檬黄强调色 + 圆润现代字体，手机端 3 秒读懂。',
+        prompt: '请根据用户最后输入的任何推荐对象，生成一张高质感推荐卡片或海报。对象可以是 App、软件、网站、GitHub 项目、一本书、一篇文章、一句话、一段文案、一道人物观点、一套菜、一份食谱、一个品牌、一个工具、一个方法，或任何值得介绍给别人的东西。\n\n你要做的不是把用户给的信息简单排版，而是先理解它为什么值得被看见。若它属于现实存在的对象，请主动联网调查它的背景、来源、真实特点、核心价值、口碑、适用人群与边界；若它是用户提供的原创内容、观点或文案，请进行理解、提炼、重组与升华，让它变得更有营养、更有判断力、更适合被传播。\n\n整体以苹果式克制、顶级海报设计判断力、高桥流凝练表达完成。不要罗列资料，不要写成说明书，不要堆满小字。重点是把复杂信息转化为一个清晰、有力、耐看的推荐理由，让普通人在手机上 3 秒内看懂：这是什么、为什么值得关注、适合谁、它真正打动人的地方在哪里。\n\n画面必须优先保证手机端可读性。信息要少而准，文字要大而清楚，层级要干净，留白要有呼吸感。最终内容应自然收束为一个强主标题、一句点明价值的副标题、少量核心看点，以及若隐若现的证据、场景、评价或情绪余韵。不要把结构写死，也不要套模板。版式、图形、颜色、节奏、文字出现方式，都应从推荐对象本身的气质中自然生长。如果对象有图标、封面、截图、菜品形态、项目视觉、品牌色或文本气质，请提取它的视觉 DNA 并延展成统一画面。若用户提供推荐语或评价，请吸收其中真实的判断与语气，不要生硬引用，而要让它成为画面里可信、温暖、有分量的一部分。\n\n最终生成的卡片应高级、清晰、抓人、可信，有一种被认真筛选、认真理解、认真推荐过的感觉。它不是信息搬运，而是一次有审美、有判断、有升华的内容再创作。\n\n风格：AI应用封面美学 + 创意爆款风 + 主标题超大字 + 文字占画面主体 + 字体微设计 + 圆润现代字体 + 荧光柠檬黄强调色\n\n标题：Vibe coding插件工具\n副标题：右键图片，3秒出AI提示词\n\n将宽高比设为 16:9',
+        environment_variables: {
+          TITLE: 'Vibe coding插件工具',
+          SUBTITLE: '右键图片，3秒出AI提示词',
+          ASPECT_RATIO: '16:9',
+          STYLE: 'AI应用封面美学 + 创意爆款风 + 主标题超大字 + 文字占画面主体 + 字体微设计 + 圆润现代字体 + 荧光柠檬黄强调色',
+          DESIGN_PRINCIPLES: '苹果式克制 / 高桥流凝练 / 手机端优先 / 信息少而准 / 文字大而清楚 / 层级干净 / 留白呼吸感'
+        }
+      },
+      'case-5': {
+        style_name: 'Acid Lime Plush Toy-Advertising 3D Style',
+        style_slug: 'acid-lime-plush-toy-advertising-3d-style',
+        style_version: '1.0.0',
+        style_summary: 'A glossy toy-advertising 3D style built from acid lime studio backdrops, oversized fuzzy plush mascots, chunky tech props, soft textile surfaces, translucent plastic accessories, checkerboard cards, sticker-like icons, hot-pink burst graphics, and bright commercial lighting.',
+        prompt: 'A glossy toy-advertising 3D style built from acid lime studio backdrops, oversized fuzzy plush mascots, chunky tech props, soft textile surfaces, translucent plastic accessories, checkerboard cards, sticker-like icons, hot-pink burst graphics, and bright commercial lighting.\n\nSubject: a round lavender plush hoodie-bear kiosk with cyan drawstring ears and tiny black bead eyes\nAction: leaning forward as if presenting a new collection drop\nProp / product: an oversized translucent T-shirt rocket capsule with chrome hanger ring and tag fins\nLocation: minimal neon studio counter with a pale speckled shelf edge\nBackground: hot-pink starburst behind the capsule, lime checkerboard mini card, floating price-tag spheres, tiny smile sticker, and cyan soft blobs\nMain text: DROP DAY\nSecondary text: new threads / fresh fit\nAccent symbol: radiating pink sparkle\nStyling: plush lavender knit body, cyan fleece drawstrings, small white hang tag, mint cord charm, and rubbery green buttons\n\nKeep visible:\n- Acid lime or neon yellow-green studio background dominates the frame, with a soft gradient glow rather than realistic scenery.\n- A single oversized plush mascot or fuzzy toy object fills the lower center, cropped close enough to feel tactile and collectible.\n- Surfaces mix fuzzy knitted fabric, soft fleece, glossy molded plastic, translucent jelly material, chrome accents, and rubbery toy parts.\n- The main prop is a chunky toy-like gadget or product object sitting on or hugging the plush subject.\n- Palette uses electric lime as the base with cyan, sky blue, hot pink, lavender, yellow, white, chrome gray, and small black details.\n\nAvoid:\nwatermark, username, creator ID, platform logo, QR code, signature, brand logo, app mark, copied source text, VIP, membership card, unlock features text, camera on head, camera as central prop, green dragon, dinosaur, monster head, blue snout with nostrils, same black oval eyes with yellow rings, purple cord whiskers, FILLTER tag, barcode spray can, copied flower button, pink basketball, same object cluster, recognizable licensed character, identifiable person, flat vector illustration, hand-drawn poster, dark cinematic lighting, muted colors, photorealistic room, natural scenery, retail shelf clutter, long paragraphs, corporate UI, gritty realism, horror mood. Do not copy source content, real logos, watermarks, platform UI, QR codes, or exact reference layouts. Keep the visual system, but change the subject, text, and scene.',
+        environment_variables: {
+          SUBJECT: 'a round lavender plush hoodie-bear kiosk with cyan drawstring ears and tiny black bead eyes',
+          SUBJECT_ACTION: 'leaning forward as if presenting a new collection drop',
+          PRODUCT_OR_PROP: 'an oversized translucent T-shirt rocket capsule with chrome hanger ring and tag fins',
+          LOCATION: 'minimal neon studio counter with a pale speckled shelf edge',
+          BACKGROUND_ELEMENTS: 'hot-pink starburst behind the capsule, lime checkerboard mini card, floating price-tag spheres, tiny smile sticker, and cyan soft blobs',
+          MAIN_TEXT: 'DROP DAY',
+          SECONDARY_TEXT: 'new threads / fresh fit',
+          ACCENT_SYMBOL: 'radiating pink sparkle',
+          WARDROBE_STYLE: 'plush lavender knit body, cyan fleece drawstrings, small white hang tag, mint cord charm, and rubbery green buttons',
+          STYLE_FIDELITY_ANCHORS: '酸柠绿工作室背景主导画框 / 单个超大毛绒吉祥物填充下方中心裁切紧凑 / 表面混合针织毛绒+柔软抓绒+光泽注塑+半透明果冻材质+镀铬+橡胶玩具部件 / 主道具为块状玩具式产品抱在毛绒主体上 / 配色以电柠绿为底配青蓝+天蓝+热粉+薰衣草紫+黄+白+铬灰+少量黑',
+          SOURCE_CONTENT_TO_AVOID: 'watermark / username / QR code / platform logo / camera on head / camera as central prop / green dragon / dinosaur / monster head / blue snout with nostrils / same black oval eyes with yellow rings / purple cord whiskers / FILLTER tag / barcode spray can / copied flower button / pink basketball / recognizable licensed character / identifiable person / flat vector illustration / hand-drawn poster / dark cinematic lighting / muted colors / photorealistic room / natural scenery / retail shelf clutter / long paragraphs / corporate UI / gritty realism / horror mood',
+          ASPECT_RATIO: '未指定'
+        }
+      },
+      'case-6': {
+        style_name: '暖调鱼眼产品冲击广告风格 — 现烤烘焙爆浆',
+        style_slug: 'warm-fisheye-bakery-product-impact-ad-style',
+        style_version: '1.0.0',
+        style_summary: '极端鱼眼微距视角，从酥皮碎屑隧道内部向外拍摄。暖金棕+烘焙焦糖色+抹茶绿/莓果粉点缀，高密度商业横幅层级，巨大倾斜3D块面标题"一口爆浆"。',
+        prompt: '你是一位「暖调鱼眼产品冲击广告风格」的锁定执行专家，专精小红书电商现烤烘焙视频笔记封面生成。\n\n创作一张 9:16 比例的小红书现烤烘焙种草视频笔记封面，采用「暖调鱼眼产品冲击广告风格」视觉系统。\n\n风格保真锁定：极端鱼眼或超广角微距，从现烤烘焙（可颂/吐司/牛角包）酥皮碎屑隧道内部向外拍摄。前景为大量金黄酥皮碎片、面包屑、面粉颗粒、坚果碎与焦糖酱形成厚重纹理边框，密集包围画面四周。英雄主体极度贴近镜头，呈现裁切感，向观众方向冲压。排版为高密度商业横幅层级，零留白，烘焙产品、大标题、小标签层层堆叠。\n\n字体：巨大倾斜白色中文展示标题"一口爆浆"，带厚重黑色阴影或挤出3D块面深度；副标题"现烤流心 酥到掉渣"。\n\n色调：暖金棕与烘焙焦糖色为主，加入少量点缀色（抹茶绿/莓果粉/焦糖橙）作为爆浆内馅或装饰元素，深琥珀暗角，白色放射速度线。平台元素仅左上角小红书红色logo图标，无角标文字、无装饰框、无其他平台信息。\n\n画面内容：主体为一双干净、骨节分明的手（或戴白色烘焙手套）从两侧轻捏一只现烤爆浆烘焙主体，正在撕开瞬间，内馅（抹茶流心/莓果酱/焦糖熔岩）爆浆拉丝流出；手仅接触面包外侧酥皮，不触碰内馅爆浆部分。产品为一只大号现烤可颂/爆浆吐司/流心牛角包置于烘焙油纸或浅木盘上，表面金黄酥脆，内馅爆浆流出，无任何品牌logo。场景为酥皮碎屑与面粉洞穴内的温暖烘焙桌面摄影棚，桌面有轻微面粉飞散与热气升腾。背景为酥皮碎片与面包屑环绕每一边缘，深琥珀暗角，顶部小字标签"Fresh / Baked / Gooey"，底部产品包装条带，暖色标签页，白色放射状速度线。主文案：一口爆浆。副文案：现烤流心 酥到掉渣。点缀：少量抹茶绿或莓果粉说明标签与倾斜白色下划线。\n\n必须保留：极端鱼眼或超广角微距视角，从酥皮堆/盘/隧道内部拍摄。前景被大量暖金棕纹理碎片密集包围，形成厚重边框。英雄主体极度贴近镜头，裁切感冲压向观众。高密度商业横幅层级，几乎无留白。巨大倾斜白色中文展示标题，带厚重黑色阴影或挤出3D块面深度。仅左上角小红书红色logo图标，无其他平台UI元素。必须使用烘焙油纸/木盘/陶瓷盘盛装，严禁出现任何包装盒、包装袋、塑料袋或外卖盒。\n\n严格避免：复制源标题、复制源标语、真实品牌logo（小红书logo除外）、水印、用户名、创作者ID、二维码、可扫描条码、精确源布局、极简布局、空白白色海报、扁平矢量、SVG外观、HTML模型、画布绘图、故事板草图、平静目录照片、奢华米色编辑风、冷纯蓝调色板、不可读标题、长段落文字、写实人脸正脸、悲伤表情、任何机器人或机械元素、右上角赞助标签、底部产品链接卡片、平台角标文字、平台装饰框、非小红书平台UI元素、手直接抓取或触碰内馅爆浆本体、手沾有酱料或油渍、脏手或油腻手指、任何包装盒/包装袋/塑料袋/外卖盒。\n\n不复制源内容、真实水印或精确参考布局。保留这套视觉系统，更换主体、文字和场景，并仅加入小红书红色logo图标。',
+        environment_variables: {
+          SUBJECT: '一双干净骨节分明的手（或戴白色烘焙手套）从两侧轻捏一只现烤爆浆烘焙主体，正在撕开瞬间，内馅爆浆拉丝流出',
+          SUBJECT_ACTION: '手仅接触面包外侧酥皮，不触碰内馅爆浆部分',
+          PRODUCT_OR_PROP: '一只大号现烤可颂/爆浆吐司/流心牛角包置于烘焙油纸或浅木盘上，表面金黄酥脆，内馅爆浆流出，无任何品牌logo',
+          LOCATION: '酥皮碎屑与面粉洞穴内的温暖烘焙桌面摄影棚，桌面有轻微面粉飞散与热气升腾',
+          BACKGROUND_ELEMENTS: '酥皮碎片与面包屑环绕每一边缘，深琥珀暗角，顶部小字标签 Fresh/Baked/Gooey，底部产品包装条带，暖色标签页，白色放射状速度线',
+          MAIN_TEXT: '一口爆浆',
+          SECONDARY_TEXT: '现烤流心 酥到掉渣',
+          ACCENT_ELEMENTS: '少量抹茶绿或莓果粉说明标签与倾斜白色下划线',
+          WARDROBE_STYLE: '干净骨节分明的手或白色烘焙手套，绝不沾酱料或油渍',
+          STYLE_FIDELITY_ANCHORS: '① 视角：极端鱼眼/超广角微距，从酥皮碎屑隧道内部向外拍摄 ② 前景：大量金黄酥皮碎片+面包屑+面粉颗粒+坚果碎+焦糖酱密集包围 ③ 主体：英雄主体极度贴近镜头裁切冲压 ④ 排版：高密度商业横幅层级零留白层层堆叠 ⑤ 字体：巨大倾斜白色3D块面标题+厚重黑色阴影 ⑥ 色调：暖金棕+烘焙焦糖色主色+抹茶绿/莓果粉点缀+深琥珀暗角+白色放射速度线 ⑦ 平台元素：仅左上角小红书红色logo图标',
+          SOURCE_CONTENT_TO_AVOID: '真实品牌logo（小红书logo除外）/ 水印 / 用户名 / 创作者ID / 二维码 / 极简布局 / 空白白色海报 / 扁平矢量 / 写实人脸正脸 / 包装盒 / 包装袋 / 塑料袋 / 外卖盒 / 手沾酱料或油渍 / 脏手油腻手指 / 平台角标文字 / 平台装饰框',
+          ASPECT_RATIO: '9:16'
+        }
+      },
+      'case-7': {
+        style_name: '冷调鱼眼产品冲击广告风格 — 男士洁面泡沫',
+        style_slug: 'cool-fisheye-product-impact-ad-style',
+        style_version: '1.0.0',
+        style_summary: '极端鱼眼微距视角，从绵密泡沫隧道内部向外拍摄。深海蓝灰 + 暖金琥珀撞色 + 白色放射速度线，高密度商业横幅层级，巨大倾斜3D块面标题"一洗入魂"。',
+        prompt: '你是一位「冷调鱼眼产品冲击广告风格」的锁定执行专家，专精小红书电商男士洁面泡沫视频笔记封面生成。\n\n创作一张 9:16 比例的小红书男士洁面泡沫种草视频笔记封面，采用「冷调鱼眼产品冲击广告风格」视觉系统。\n\n风格保真锁定：极端鱼眼或超广角微距，从绵密洁面泡沫隧道内部向外拍摄。前景为大量绵密泡沫团、洁面膏体、水珠颗粒、海盐结晶与竹炭微粒形成厚重纹理边框，密集包围画面四周。英雄主体极度贴近镜头，呈现裁切感，向观众方向冲压。排版为高密度商业横幅层级，零留白，洁面瓶、大标题、小标签层层堆叠。\n\n字体：巨大倾斜白色中文展示标题"一洗入魂"，带厚重黑色阴影或挤出3D块面深度；副标题"泡沫暴击 油腻必囤"。\n\n色调：深海蓝灰为主，暖金琥珀撞色，深暗角，白色放射速度线。平台元素仅左上角小红书红色logo图标，无角标文字、无装饰框、无其他平台信息。\n\n画面内容：主体为一只干净、骨节分明的手（或戴黑色硅胶手套）按压男士洁面泡沫瓶泵头，泡沫如火山喷发般从泵口喷涌炸裂，冲向镜头；手仅接触泵头外侧，绝不触碰喷涌出的泡沫本体。产品为一只哑光深海蓝灰或磨砂黑洁面泡沫瓶，泵口正喷出大量绵密泡沫，瓶身带暖金琥珀色线条装饰，无任何品牌logo。场景为绵密泡沫与海盐颗粒洞穴内的冷调浴室桌面摄影棚，桌面有轻微水珠飞溅与蒸汽升腾。背景为泡沫团与海盐结晶环绕每一边缘，深暗角，顶部小字标签"Clean / Foam / Fresh"，底部产品包装条带，暖金琥珀标签页，白色放射状速度线。主文案：一洗入魂。副文案：泡沫暴击 油腻必囤。点缀：少量冰川蓝或薄荷绿色说明标签与倾斜白色下划线。\n\n必须保留：极端鱼眼或超广角微距视角，从泡沫堆/隧道内部拍摄。前景被大量深海蓝灰纹理碎片密集包围，形成厚重边框。英雄主体极度贴近镜头，裁切感冲压向观众。高密度商业横幅层级，几乎无留白。巨大倾斜白色中文展示标题，带厚重黑色阴影或挤出3D块面深度。仅左上角小红书红色logo图标，无其他平台UI元素。必须使用洁面泡沫瓶/按压泵盛装，严禁出现任何纸盒包装、密封袋、软管或外卖盒。\n\n严格避免：复制源标题、复制源标语、真实品牌logo（小红书logo除外）、水印、用户名、创作者ID、二维码、可扫描条码、精确源布局、极简布局、空白白色海报、扁平矢量、SVG外观、HTML模型、画布绘图、故事板草图、平静目录照片、奢华米色编辑风、冷纯蓝调色板、不可读标题、长段落文字、写实人脸正脸、悲伤表情、任何机器人或机械元素、右上角赞助标签、底部产品链接卡片、平台角标文字、平台装饰框、非小红书平台UI元素、手直接触碰或抓取泡沫本体、手沾有泡沫或水渍、脏手或油腻手指、任何纸盒包装/密封袋/软管/外卖盒。\n\n不复制源内容、真实水印或精确参考布局。保留这套视觉系统，更换主体、文字和场景，并仅加入小红书红色logo图标。',
+        environment_variables: {
+          SUBJECT: '一只干净骨节分明的手（或戴黑色硅胶手套）按压男士洁面泡沫瓶泵头，泡沫如火山喷发般从泵口喷涌炸裂冲向镜头',
+          SUBJECT_ACTION: '手仅接触泵头外侧，绝不触碰喷涌出的泡沫本体',
+          PRODUCT_OR_PROP: '一只哑光深海蓝灰或磨砂黑洁面泡沫瓶，泵口正喷出大量绵密泡沫，瓶身带暖金琥珀色线条装饰，无任何品牌logo',
+          LOCATION: '绵密泡沫与海盐颗粒洞穴内的冷调浴室桌面摄影棚，桌面有轻微水珠飞溅与蒸汽升腾',
+          BACKGROUND_ELEMENTS: '泡沫团与海盐结晶环绕每一边缘，深暗角，顶部小字标签 Clean/Foam/Fresh，底部产品包装条带，暖金琥珀标签页，白色放射状速度线',
+          MAIN_TEXT: '一洗入魂',
+          SECONDARY_TEXT: '泡沫暴击 油腻必囤',
+          ACCENT_ELEMENTS: '少量冰川蓝或薄荷绿色说明标签与倾斜白色下划线',
+          WARDROBE_STYLE: '干净骨节分明的手或黑色硅胶手套，绝不沾泡沫或水渍',
+          STYLE_FIDELITY_ANCHORS: '① 视角：极端鱼眼/超广角微距，从泡沫隧道内部向外拍摄 ② 前景：大量绵密泡沫团+洁面膏体+水珠+海盐结晶+竹炭微粒密集包围 ③ 主体：英雄主体极度贴近镜头裁切冲压 ④ 排版：高密度商业横幅层级零留白层层堆叠 ⑤ 字体：巨大倾斜白色3D块面标题+厚重黑色阴影 ⑥ 色调：深海蓝灰主色+暖金琥珀撞色+深暗角+白色放射速度线 ⑦ 平台元素：仅左上角小红书红色logo图标',
+          SOURCE_CONTENT_TO_AVOID: '真实品牌logo（小红书logo除外）/ 水印 / 用户名 / 创作者ID / 二维码 / 极简布局 / 空白白色海报 / 扁平矢量 / 写实人脸正脸 / 纸盒包装 / 密封袋 / 软管 / 外卖盒 / 手沾泡沫或水渍 / 脏手油腻手指 / 平台角标文字 / 平台装饰框',
+          ASPECT_RATIO: '9:16'
+        }
+      },
+      'case-8': {
+        style_name: 'Electric Grid Disco Flyer Poster Style',
+        style_slug: 'electric-grid-disco-flyer-poster-style',
+        style_version: '1.0.0',
+        style_summary: 'A loud flat comic-poster system built from electric-blue grid paper, oversized neon-lime speech-panel geometry, heavy black block typography, sharp yellow back plates, radial action marks, and gritty print texture.',
+        prompt: 'A loud flat comic-poster system built from electric-blue grid paper, oversized neon-lime speech-panel geometry, heavy black block typography, sharp yellow back plates, radial action marks, and gritty print texture. The style feels like a kinetic street flyer where the headline is the main subject.\n\nSubject: 一个夸张的迪斯科球剪影和简化舞者轮廓\nAction: 把灯光转亮并把舞鞋踢到画面边缘\nProp / product: 一个被图形化处理的巨大舞池和飞溅光斑\nLocation: 蓝色网格纸上的扁平迪厅场景\nBackground: 黑色放射线、极小票价形状、几枚箭头和少量油墨颗粒\nMain text: 舞池重启\nSecondary text: DISCO NIGHT / 今晚摇摆\nAccent symbol: 黑色双箭头和短促爆裂线\nStyling: 黑色喇叭裤轮廓、简化爆炸头、无真实五官的扁平剪影\n\nKeep visible:\n- Electric-blue background fills the canvas and carries a faint square grid, like printed graph paper.\n- A giant neon-lime speech-bubble or banner panel dominates the center with a sharp triangular tail or cutout.\n- A flat yellow geometric back plate peeks from behind the lime panel to create high-contrast poster depth.\n- Massive black block typography is the primary visual mass, cropped tight and packed inside the lime shape.\n- Letterforms feel blunt, heavy, slightly irregular, and comic-like rather than refined or corporate.\n\nAvoid:\nphotorealism, 3D render, glossy bevel, chrome type, polished corporate vector logo, realistic room or street scene, cinematic depth of field, soft gradients, pastel palette, beige editorial palette, long paragraph text, tiny main headline, copied source text, 再出发, DEPART, again, GOGOGO, departure/restart premise, exact reference layout, exact lime speech-bubble silhouette, exact yellow wedge placement, signature mark, watermark, username, QR code, platform logo, brand logo, app icon, creator ID, muddy grunge, illegible clutter. Do not copy source content, real logos, watermarks, platform UI, QR codes, or exact reference layouts. Keep the visual system, but change the subject, text, and scene.',
+        environment_variables: {
+          SUBJECT: '一个夸张的迪斯科球剪影和简化舞者轮廓',
+          SUBJECT_ACTION: '把灯光转亮并把舞鞋踢到画面边缘',
+          PRODUCT_OR_PROP: '一个被图形化处理的巨大舞池和飞溅光斑',
+          LOCATION: '蓝色网格纸上的扁平迪厅场景',
+          BACKGROUND_ELEMENTS: '黑色放射线、极小票价形状、几枚箭头和少量油墨颗粒',
+          MAIN_TEXT: '舞池重启',
+          SECONDARY_TEXT: 'DISCO NIGHT / 今晚摇摆',
+          ACCENT_SYMBOL: '黑色双箭头和短促爆裂线',
+          WARDROBE_STYLE: '黑色喇叭裤轮廓、简化爆炸头、无真实五官的扁平剪影',
+          STYLE_FIDELITY_ANCHORS: '电蓝色网格纸基底、巨型霓虹柠绿对话框面板几何感、扁平黄色后衬板高对比深度、厚重黑色块状标题字被裁切压缩在柠绿图形内、字形钝重微不规则漫画感、粗糙印刷质感',
+          SOURCE_CONTENT_TO_AVOID: 'photorealism / 3D render / glossy bevel / chrome type / polished corporate vector logo / realistic room or street scene / cinematic depth of field / soft gradients / pastel palette / beige editorial palette / long paragraph text / tiny main headline / 再出发 / DEPART / again / GOGOGO / departure/restart premise / exact reference layout / exact lime speech-bubble silhouette / exact yellow wedge placement / signature mark / watermark / username / QR code / platform logo / brand logo / app icon / creator ID / muddy grunge / illegible clutter',
+          ASPECT_RATIO: '未指定'
+        }
+      },
+      'case-9': {
+        style_name: '夸张冲击风 — Claude Design 开源推荐卡',
+        style_slug: 'claude-design-oss-recommendation-card',
+        style_version: '1.0.0',
+        style_summary: '夸张冲击风 + 大字标题 + 对比色 + 高光元素 + 表情符号点缀 + 关键数据放大 + 情绪化字体设计。苹果式克制 × 高桥流凝练，900x383，手机端优先字号规范。',
+        prompt: '请根据用户输入的推荐对象，生成一张高质感推荐卡片。先理解它为什么值得被看见，提炼核心价值，让普通人 3 秒内看懂：这是什么，为什么值得关注，适合谁。整体以苹果式克制、顶级海报设计判断力、高桥流凝练表达完成。不要罗列资料，不要写成说明书。信息少而准，文字大而清楚，层级干净，留白有呼吸感。版式、图形、颜色、节奏从推荐对象本身的气质中自然生长。\n\n风格：夸张冲击风+大字标题+对比色+高光元素+表情符号点缀+关键数据放大+情绪化字体设计\n\n尺寸：900x383\n\n字号规范（手机端优先）：主标题最大，占画面高度 15-20%。副标题为主标题的 70%。核心看点为主标题的 65%，加粗。适合谁为主标题的 60%。角落标注/装饰文字最小，不超过主标题的 40%。所有文字在 30cm 阅读距离下清晰可读，不眯眼、不凑近。\n\n需要设计的文本：Claude Design刚出两周，开源版已经36K星了 2026-05-11',
+        environment_variables: {
+          TITLE: 'Claude Design',
+          HOOK: '刚出两周，开源版已经36K星了',
+          DATE: '2026-05-11',
+          SIZE: '900x383',
+          STYLE: '夸张冲击风 + 大字标题 + 对比色 + 高光元素 + 表情符号点缀 + 关键数据放大 + 情绪化字体设计',
+          TYPOGRAPHY: '主标题占画面高度15-20% / 副标题=主标题70% / 核心看点=主标题65%加粗 / 适合谁=主标题60% / 角落标注≤主标题40% / 30cm阅读距离清晰可读'
+        }
+      },
+      'case-10': {
+        style_name: '赛博煎蛋 · 录音室开放日 邀请函',
+        style_slug: 'cyber-egg-studio-open-day-invitation',
+        style_version: '1.0.0',
+        style_summary: '独立杂志封面 + 建筑秩序 + 手工纸品的邀请函艺术。水泥灰底 + 深炭黑刻字 + 声波几何 + 克制金属微光，像从录音棚控制台抽屉取出的预约卡，有机械温度无工业冰冷。',
+        prompt: '你是一位邀请函艺术导演、信息策展人、文案修辞者与视觉叙事设计师。\n\n为「赛博煎蛋」创作一张"录音室开放日"高级邀请函。这不是工厂参观、不是设备科普，而是让听众走进声音诞生的空间，带走一段未被发布的记忆。\n\n活动信息：邀请者「赛博煎蛋」｜主题「录音室开放日」｜时间 2026年8月16日（周六）14:00-17:00 ｜地点 上海市静安区某独立录音棚（具体地址确认后另行通知）｜限15人 ｜对象 持续收听超过半年的读者、曾留言讨论过音频质量的听众 ｜形式 参观设备布局、旁观一期真实录制、带走一张刻有未发布音频片段的实体卡片 ｜核心价值 声音从抽象到可触摸，空间从耳机里走到眼前 ｜精神表达"你听到的声音，从这里漏出来"\n\n视觉要求：第一眼 声音的空间化暗示（声波、窗格、设备轮廓）→ 第二眼 谁在邀请，去哪里 → 第三眼 为何值得走进来 → 最后 如何回应（限15人，报名占位）\n\n美学路径：独立杂志封面 + 建筑秩序 + 手工纸品。像一张从录音棚控制台抽屉取出的预约卡，有机械温度，无工业冰冷。\n\n色彩与材质：底色 水泥灰/浅岩灰带轻微纸张颗粒与混凝土质感 ｜主文字 深炭黑像设备面板上的刻字 ｜点缀 麦克风简笔轮廓、磁带局部、声波压纹、细线框、半透明层 ｜克制使用 金属微光、旋钮刻度暗示、日期标签\n\n文字层级：主标题「录音室开放日」或「声音从这里漏出来」｜副标题「你听到的声音，从这里漏出来」｜时间地点 2026.08.16 周六 14:00 / 上海·某处录音棚 / 限15人 ｜回应区「确认你能来，再告诉你门牌号」｜底部小字 赛博煎蛋\n\n构图：竖版3:4或4:5。上半部为录音棚窗格抽象线条或声波几何图形，像建筑立面。文字垂直排列于左侧或集中于下半部，像设备标签。大面积留白在右下，像未被录制的空白磁带。不要人物照片，不要二维码直接贴图，不要社交媒体图标，不要"幕后揭秘""独家""零距离"等宣传词汇。\n\n禁忌：不要网页感、不要参观团感、不要信息罗列、不要每个字都放大、不要装饰性元素无来由、不要高饱和色、不要低质拼贴、不要设备参数表、不要流程时间表。\n\n直接生成一张完整的高级视觉作品，适合电子发送、社交媒体分享、打印收藏。它应像一张从控制台抽屉取出的预约卡：信息不多，但每个字都有位置；装饰不满，但每处细节都有来由；风格不被说明，却能被感受到。',
+        environment_variables: {
+          INVITER: '赛博煎蛋',
+          EVENT: '录音室开放日',
+          TIME: '2026年8月16日（周六）14:00-17:00',
+          LOCATION: '上海市静安区某独立录音棚',
+          CAPACITY: '限15人',
+          TARGET_AUDIENCE: '持续收听超过半年的读者、曾留言讨论过音频质量的听众',
+          CORE_VALUE: '声音从抽象到可触摸，空间从耳机里走到眼前',
+          SPIRIT: '你听到的声音，从这里漏出来',
+          PALETTE: '水泥灰/浅岩灰底 + 深炭黑文字 + 金属微光点缀 + 声波压纹 + 细线框 + 半透明层',
+          COMPOSITION: '竖版3:4或4:5，上半部声波几何/建筑立面，文字垂直排列或集中下半部，右下大面积留白',
+          STYLE_FIDELITY_ANCHORS: '独立杂志封面美学 / 建筑秩序感 / 手工纸品质感 / 机械温度无工业冰冷 / 控制台抽屉预约卡气质 / 信息不多但每个字都有位置',
+          SOURCE_CONTENT_TO_AVOID: '人物照片、二维码贴图、社交媒体图标、幕后揭秘/独家/零距离等宣传词汇、网页感、参观团感、信息罗列、高饱和色、低质拼贴、设备参数表、流程时间表',
+          ASPECT_RATIO: '3:4 或 4:5'
+        }
+      }
+    };
+    const caseOrder = ['case-11','case-12','case-13','case-14','case-15','case-16','case-17','case-18','case-19','case-20','case-21','case-22','case-23','case-24','case-25','case-1','case-2','case-3','case-4','case-5','case-6','case-7','case-8','case-9','case-10'];
+    const galleryImgs = document.querySelectorAll('.gallery-img');
+    const detailWrap = document.getElementById('caseDetailWrap');
+    const detailImg = document.getElementById('caseDetailImg');
+    const detailText = document.getElementById('caseDetailText');
+    const detailClose = document.getElementById('caseDetailClose');
+    const caseNavPrev = document.getElementById('caseNavPrev');
+    const caseNavNext = document.getElementById('caseNavNext');
+    let activeCase = null;
+    function refreshCase(caseKey) {
+      const imgEl = document.querySelector(`.gallery-img[data-case="${caseKey}"]`);
+      if (!imgEl) return;
+      const data = casePrompts[caseKey];
+      if (!data) return;
+      if (activeCase) {
+        document.querySelector(`.gallery-img[data-case="${activeCase}"]`)?.classList.remove('is-active');
+      }
+      activeCase = caseKey;
+      imgEl.classList.add('is-active');
+      detailImg.src = imgEl.src;
+      detailImg.alt = imgEl.alt;
+      detailText.innerHTML = `<div class="case-detail-prompt">${data.prompt}</div><button class="case-detail-copy" id="caseDetailCopyBtn"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>复制提示词</span></button>`;
+      if (!detailWrap.classList.contains('open')) {
+        detailWrap.classList.add('open');
+      }
+    }
+    function openCaseDetail(imgEl, caseKey) {
+      if (activeCase === caseKey) { closeCaseDetail(); return; }
+      refreshCase(caseKey);
+      setTimeout(() => { detailWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 120);
+    }
+    function navigateCase(direction) {
+      const idx = caseOrder.indexOf(activeCase);
+      if (idx === -1) return;
+      const newIdx = idx + direction;
+      if (newIdx < 0 || newIdx >= caseOrder.length) return;
+      refreshCase(caseOrder[newIdx]);
+    }
+    function closeCaseDetail() {
+      if (activeCase) {
+        document.querySelector(`.gallery-img[data-case="${activeCase}"]`)?.classList.remove('is-active');
+      }
+      activeCase = null;
+      detailWrap.classList.remove('open');
+    }
+    galleryImgs.forEach(img => {
+      img.addEventListener('click', () => { openCaseDetail(img, img.dataset.case); });
+    });
+    detailClose.addEventListener('click', (e) => { e.stopPropagation(); closeCaseDetail(); });
+    caseNavPrev.addEventListener('click', (e) => { e.stopPropagation(); navigateCase(-1); });
+    caseNavNext.addEventListener('click', (e) => { e.stopPropagation(); navigateCase(1); });
+    document.addEventListener('keydown', (e) => {
+      if (!activeCase) return;
+      if (e.key === 'Escape') closeCaseDetail();
+      if (e.key === 'ArrowLeft') { e.preventDefault(); navigateCase(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); navigateCase(1); }
+    });
+    // 复制按钮 — 事件委托，因为按钮是动态插入的
+    detailText.addEventListener('click', (e) => {
+      const btn = e.target.closest('.case-detail-copy');
+      if (!btn) return;
+      const prompt = casePrompts[activeCase]?.prompt;
+      if (!prompt) return;
+      navigator.clipboard.writeText(prompt).then(() => {
+        btn.classList.add('copied');
+        btn.querySelector('span').textContent = '已复制 ✓';
+        setTimeout(() => { btn.classList.remove('copied'); btn.querySelector('span').textContent = '复制提示词'; }, 2000);
+      }).catch(() => {
+        btn.classList.add('copied');
+        btn.querySelector('span').textContent = '请手动复制';
+        setTimeout(() => { btn.classList.remove('copied'); btn.querySelector('span').textContent = '复制提示词'; }, 2000);
+      });
+    });
+
+    // === Lightbox for skeleton section images only ===
+    const skeletonImgs = Array.from(document.querySelectorAll('.case-img:not(.gallery-img)'));
+    skeletonImgs.forEach((img, idx) => { img.addEventListener('click', () => openLightbox(idx)); });
+    function openLightbox(startIdx) {
+      let currentIdx = startIdx;
+      const overlay = document.createElement('div'); overlay.className = 'img-lightbox';
+      const imgEl = document.createElement('img'); imgEl.src = skeletonImgs[currentIdx].src; imgEl.alt = skeletonImgs[currentIdx].alt;
+      const prevBtn = document.createElement('button'); prevBtn.className = 'lightbox-nav lightbox-prev'; prevBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
+      const nextBtn = document.createElement('button'); nextBtn.className = 'lightbox-nav lightbox-next'; nextBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>';
+      const counter = document.createElement('div'); counter.className = 'lightbox-counter'; counter.textContent = (currentIdx + 1) + ' / ' + skeletonImgs.length;
+      function updateImg() { imgEl.src = skeletonImgs[currentIdx].src; imgEl.alt = skeletonImgs[currentIdx].alt; counter.textContent = (currentIdx + 1) + ' / ' + skeletonImgs.length; }
+      prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + skeletonImgs.length) % skeletonImgs.length; updateImg(); });
+      nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % skeletonImgs.length; updateImg(); });
+      overlay.appendChild(imgEl); overlay.appendChild(prevBtn); overlay.appendChild(nextBtn); overlay.appendChild(counter);
+      document.body.appendChild(overlay); requestAnimationFrame(() => overlay.classList.add('active'));
+      const close = () => { overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 300); document.removeEventListener('keydown', onKey); };
+      overlay.addEventListener('click', (e) => { if (e.target === overlay || e.target === imgEl) close(); });
+      function onKey(e) { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') prevBtn.click(); if (e.key === 'ArrowRight') nextBtn.click(); }
+      document.addEventListener('keydown', onKey);
+    }
+    const initSmoothScroll = () => { if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null; const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true }); gsap.ticker.add((time) => { lenis.raf(time * 1000); }); gsap.ticker.lagSmoothing(0); return lenis; };
+    initSmoothScroll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="AI 产品视频制作工作流，五步出片，1个人替代1个团队，成本降到传统方式的十分之一。">
+  <title>AI 产品视频制作流程 | 陈楠</title>
+
+  <!-- 依赖 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000',
+              text: '#ffffff',
+              muted: 'rgba(255,255,255,0.55)',
+              sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)',
+              borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)',
+              surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- 核心样式 -->
+  <style>
+    /* ===== 基础 ===== */
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background-color: #000;
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, .font-mono {
+      font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace;
+    }
+    ::selection { background: #ff9ac8; color: #000; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ===== 导航栏 ===== */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background-color: transparent; backdrop-filter: blur(0px);
+      border-bottom: 1px solid transparent;
+      transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s;
+    }
+    .header.is-scrolled {
+      padding-top: 1rem; padding-bottom: 1rem;
+      background-color: rgba(0,0,0,0.55);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border-bottom-color: rgba(255,255,255,0.06);
+    }
+    .header-logo {
+      flex: 1; color: rgba(255,255,255,0.55); text-decoration: none;
+      display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s;
+    }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) {
+      .header { padding: 1rem 1.5rem; }
+      .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    }
+
+    /* ===== 全局视觉层 ===== */
+    .vignette {
+      position: fixed; inset: 0; z-index: 9996; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%);
+    }
+    .glow-blob {
+      position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      filter: blur(120px); will-change: transform;
+    }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%;
+      background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%);
+      animation: blobFloat1 20s ease-in-out infinite;
+    }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%;
+      background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%);
+      animation: blobFloat2 24s ease-in-out infinite;
+    }
+    @keyframes blobFloat1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(-50px,80px) scale(1.1); }
+      66% { transform: translate(40px,-40px) scale(0.95); }
+    }
+    @keyframes blobFloat2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(60px,-50px) scale(1.15); }
+      66% { transform: translate(-30px,40px) scale(0.9); }
+    }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none;
+      background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%);
+    }
+
+    /* ===== 卡片光晕 ===== */
+    .card-glow { position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.6s cubic-bezier(0.22,1,0.36,1),
+                  background-color 0.6s cubic-bezier(0.22,1,0.36,1);
+    }
+    .card-glow::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0;
+      background:
+        radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent),
+        radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%);
+      transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+    }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover {
+      border-color: rgba(226,242,31,0.55);
+      background-color: rgba(255,255,255,0.14);
+      box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .card-glow > * { position: relative; z-index: 1; }
+
+    /* ===== 内容卡片（工作流步骤） ===== */
+    .content-card { padding: 1.5rem; border-radius: 18px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .content-card:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(226,242,31,0.2);
+      transform: translateY(-2px);
+    }
+
+    /* ===== 视频卡片 ===== */
+    .video-card {
+      background: rgba(255,255,255,0.02); border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: all 0.3s;
+    }
+    .video-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .video-wrapper { border-radius: 12px; overflow: hidden; }
+    .video-wrapper video { width: 100%; height: auto; display: block; }
+    .video-card-title { padding: 0.75rem 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.5); letter-spacing: 0.02em; }
+
+    /* ===== 章节标题左侧色条 ===== */
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em;
+      width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7;
+    }
+
+    /* ===== 数据卡片 ===== */
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      transition: all 0.3s;
+    }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    /* ===== 滚动渐显 ===== */
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+
+    /* ===== 图片相关 ===== */
+    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: zoom-in;
+    }
+    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+    .img-lightbox {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.92);
+      display: flex; align-items: center; justify-content: center;
+      cursor: zoom-out; opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .img-lightbox.active { opacity: 1; }
+    .img-lightbox img {
+      max-width: 90vw; max-height: 90vh;
+      object-fit: contain; border-radius: 8px;
+      cursor: zoom-out;
+    }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0;
+    }
+    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
+    .lightbox-prev { left: 16px; }
+    .lightbox-next { right: 16px; }
+    @media (min-width: 768px) {
+      .lightbox-prev { left: 32px; }
+      .lightbox-next { right: 32px; }
+    }
+    .lightbox-counter {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em;
+    }
+
+    @keyframes ripple-out {
+      0% { transform: scale(0.35); opacity: 0.7; }
+      100% { transform: scale(2.20); opacity: 0.0; }
+    }
+
+    /* ===== 工具矩阵 ===== */
+    .tool-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px;
+      padding: 20px 12px;
+      border-radius: 14px;
+      transition: background 0.3s;
+    }
+    .tool-card:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .tool-matrix-img {
+      width: 78px; height: 78px;
+      object-fit: contain;
+      border-radius: 10px;
+      transition: transform 0.3s ease;
+      display: block;
+      margin: 0 auto;
+    }
+    .tool-card:hover .tool-matrix-img {
+      transform: scale(1.12);
+    }
+    .tool-icon {
+      width: 78px; height: 78px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; font-weight: 700;
+      color: #fff;
+      transition: transform 0.3s ease;
+    }
+    .tool-card:hover .tool-icon {
+      transform: scale(1.12);
+    }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <!-- ============================================================ -->
+  <!-- ===================== 配置区域：只改这里 ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    const CONFIG = {
+      // ---------- 导航栏 ----------
+      nav: {
+        logoText: '返回首页',
+        logoLink: '../../index.html#project-5',
+        links: [
+          { text: '工作流', href: '#section-workflow' },
+          { text: '案例视频', href: '#section-videos' }
+        ]
+      },
+
+      // ---------- Hero 区域 ----------
+      hero: {
+        meta: '2026 · 独立设计 & 开发',
+        tag: '无需拍摄 · 分钟级出片',
+        title: {
+          line1: 'AI 产品视频',
+          prefix: '五步',
+          highlight: '快速出片'
+        },
+        description: '传统产品视频要养团队、租场地、拍一整天，改一版全部重来。我搭了一套 <strong style="color:#fff;">5 步 AI 工作流</strong>——从卖点拆解到最终成片，每个环节 AI 驱动，单人跑完全程。成本降低 <strong style="color:#e2f21f;">90%</strong>，出片速度快 <strong style="color:#e2f21f;">10 倍</strong>。',
+        labels: ['无需拍摄 · 全 AI 驱动', '5 步标准化 · 可复用', '单人跑完全链路', '分钟级出片 · 快速迭代']
+      },
+
+      // ---------- 五步工作流 ----------
+      workflow: {
+        id: 'section-workflow',
+        title: '方法架构：5 步 AI 驱动工作流',
+        description: '从卖点拆解到最终成片的完整链路。每一步都由 AI 驱动，可独立调整、低成本验证——沉淀的不是某一条视频，而是一套可持续复用的生产系统。',
+        steps: [
+          { number: '01', title: '拆解产品展示维度', desc: '向对话 AI 提问，几分钟内梳理完产品视频需要展示的全部维度和卖点，无需投入大量人工调研。' },
+          { number: '02', title: '生成 9 宫格分镜提示词', desc: '将产品介绍大纲喂给 Gemini，结合故事板模板快速生成分镜语言，不满意可随时调整，试错成本极低。' },
+          { number: '03', title: '生成故事板图片', desc: '进入 Google Flow 图片生成模式，将分镜提示词转化为可视化的 9 宫格故事板，直观验证视觉方向后再推进。' },
+          { number: '04', title: '生成视频提示词', desc: '将故事板图片回传给 Gemini，让它根据画面内容反推出可直接用于视频生成的详细提示词，支持反复优化打磨。' },
+          { number: '05', title: '生成最终视频', desc: '将视频提示词投入 AI 视频工具，设置参数后一键出片，分钟级产出专业级视频，支持批量生成多个版本快速对比。' }
+        ]
+      },
+
+      // ---------- 量化数据 ----------
+      stats: {
+        id: 'section-stats',
+        title: '量化成果',
+        description: '整个工作流的核心指标一览',
+        items: [
+          { value: '5', suffix: '步', label: '核心流程', desc: '极简标准化链路，每步独立迭代' },
+          { value: '90', suffix: '%', label: '成本降低', desc: '无需拍摄、无需场地、无需团队' },
+          { value: '10', suffix: '倍', label: '效率提升', desc: '制作周期从数天压缩到几十分钟' },
+          { value: '1', suffix: '人', label: '独立完成', desc: '全流程单人操作，不依赖外部资源' }
+        ]
+      },
+
+      // ---------- 图片画廊（工具矩阵） ----------
+      gallery: {
+        id: 'section-gallery',
+        title: '工具矩阵',
+        description: '每个环节对应的最优 AI 工具',
+        items: [
+          { title: '豆包', src: './icon/doubao-color.webp', alt: '豆包' },
+          { title: 'Gemini', src: './icon/gemini-color-dark.webp', alt: 'Gemini' },
+          { title: 'Flow', src: './icon/Flow.jpg', alt: 'Flow' },
+          { title: 'Seedance', src: './icon/jimeng-color-dark.webp', alt: 'Seedance' },
+          { title: 'ChatGPT', src: './icon/openai-light.webp', alt: 'ChatGPT' }
+        ]
+      },
+
+      // ---------- 案例视频 ----------
+      videos: {
+        id: 'section-videos',
+        title: '案例视频',
+        description: '基于该工作流快速迭代、低成本产出的产品视频成片',
+        items: [
+          { title: '耳机产品视频', src: '1耳机.mp4' },
+          { title: '即食花胶产品视频', src: '2即食花胶.mp4' },
+          { title: '智能宠物喂食器视频', src: '3智能宠物喂食.mp4' },
+          { title: '防晒产品视频', src: '4防晒.mp4' }
+        ]
+      },
+
+      // ---------- 差异化价值 ----------
+      difference: {
+        id: 'section-diff',
+        title: '差异化价值',
+        description: '与行业现有方案的根本区别',
+        items: [
+          {
+            number: '01',
+            title: '练流程，不是拼资源',
+            desc: '传统方案拼团队、场地、预算。这套工作流拼的是流程标准化——把 AI 串联成生产线，让出片从一次性项目变成可持续能力。'
+          },
+          {
+            number: '02',
+            title: '快迭代，不是一次过',
+            desc: '传统视频拍完再改，成本极高。AI 工作流中任何一步都可以随时回溯、调整、重来，单次迭代成本趋近于零。'
+          },
+          {
+            number: '03',
+            title: '可复用，不是一次性的',
+            desc: '5 步标准化流程与领域弱耦合——换掉产品介绍就能产出不同品类的视频，沉淀的是一套方法论，不是一条片子。'
+          }
+        ]
+      },
+
+      // ---------- 金句引用 ----------
+      quote: {
+        text: '相比传统制作的高投入、长周期与难以回溯，这套工作流以极低的单次成本和分钟级的调整速度，让「先出片、再验证、快速迭代」成为常态。沉淀的不是某一条视频，而是一套可持续复用的低成本内容生产方法论。',
+        source: '与 AI 结合的方法论沉淀'
+      },
+
+      // ---------- Footer ----------
+      footer: {
+        left: 'ChenNan / 2026',
+        right: 'vibe coding products by ChenNan'
+      }
+    };
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 页面结构 ===================== -->
+  <!-- ============================================================ -->
+
+  <!-- 全局视觉层 -->
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <!-- 导航栏 -->
+  <header class="header" id="header">
+    <a href="#" class="header-logo" id="nav-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      <span id="nav-logo-text">返回首页</span>
+    </a>
+    <div class="header-right" id="nav-links"></div>
+  </header>
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]" id="hero-meta"></span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);" id="hero-tag"></span>
+      </div>
+
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white" id="hero-title"></h1>
+
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl" id="hero-desc"></p>
+
+      <div class="mt-10 flex flex-wrap gap-3" id="hero-labels"></div>
+    </div>
+  </header>
+
+  <!-- 痛点 -->
+  <section class="py-20 px-8 sm:px-12" id="section-problem">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">行业痛点</h2>
+      </div>
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.25rem] text-white/70 leading-[1.7] font-medium max-w-2xl">
+          传统产品视频制作<strong class="text-white">投入高、周期长、难修改</strong>——养团队、租场地、拍一整天，改一版就得全部重来。多数团队<span style="color:#e2f21f;">连试错成本都付不起</span>，更别提快速迭代了。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 量化数据 -->
+  <section class="py-20 px-8 sm:px-12" id="section-stats">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-12 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="stats-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="stats-desc"></p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 scroll-reveal" id="stats-grid"></div>
+    </div>
+  </section>
+
+  <!-- 案例视频 -->
+  <section class="py-20 px-8 sm:px-12" id="section-videos">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="videos-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="videos-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 scroll-reveal" id="videos-grid"></div>
+    </div>
+  </section>
+
+  <!-- 五步工作流 -->
+  <section class="py-20 px-8 sm:px-12" id="section-workflow">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="workflow-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="workflow-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 scroll-reveal" id="workflow-grid"></div>
+    </div>
+  </section>
+
+  <!-- 差异化价值 -->
+  <section class="py-20 px-8 sm:px-12" id="section-diff">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="diff-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="diff-desc"></p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal" id="diff-grid"></div>
+    </div>
+  </section>
+
+  <!-- 图片画廊 -->
+  <section class="py-20 px-8 sm:px-12" id="section-gallery">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="gallery-title"></h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="gallery-desc"></p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 scroll-reveal" id="gallery-grid"></div>
+    </div>
+  </section>
+
+  <!-- 金句引用 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto" id="quote-text"></p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase" id="quote-source"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 背景视频 -->
+  <video autoplay muted loop playsinline style="position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;object-fit:cover;opacity:0.55;">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20">
+        <span>Built with Claude Code</span><span>·</span>
+        <span>Python</span><span>·</span>
+        <span>Gemini</span><span>·</span>
+        <span>ChatGPT</span><span>·</span>
+        <span>Seedance</span><span>·</span>
+        <span>Google Flow</span>
+      </div>
+      <p id="footer-right"></p>
+    </div>
+  </footer>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 渲染引擎 ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    // ---------- 导航 ----------
+    document.getElementById('nav-logo').href = CONFIG.nav.logoLink;
+    document.getElementById('nav-logo-text').textContent = CONFIG.nav.logoText;
+    const navLinksEl = document.getElementById('nav-links');
+    CONFIG.nav.links.forEach(link => {
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.className = 'header-social';
+      a.innerHTML = `<span>${link.text}</span>`;
+      navLinksEl.appendChild(a);
+    });
+
+    // ---------- Hero ----------
+    document.getElementById('hero-meta').textContent = CONFIG.hero.meta;
+    document.getElementById('hero-tag').textContent = CONFIG.hero.tag;
+    document.getElementById('hero-title').innerHTML =
+      `${CONFIG.hero.title.line1}<br><span class="text-white/75">${CONFIG.hero.title.prefix}</span> <span style="color:#e2f21f;">${CONFIG.hero.title.highlight}</span>`;
+    document.getElementById('hero-desc').innerHTML = CONFIG.hero.description;
+    const heroLabelsEl = document.getElementById('hero-labels');
+    CONFIG.hero.labels.forEach(label => {
+      const span = document.createElement('span');
+      span.className = 'card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50';
+      span.innerHTML = `<span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>${label}`;
+      heroLabelsEl.appendChild(span);
+    });
+
+    // ---------- Stats ----------
+    document.getElementById('stats-title').textContent = CONFIG.stats.title;
+    document.getElementById('stats-desc').textContent = CONFIG.stats.description;
+    const statsGrid = document.getElementById('stats-grid');
+    CONFIG.stats.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'stat-card';
+      div.innerHTML = `
+        <div class="stat-value"><span class="stat-number">${item.value}</span>${item.suffix}</div>
+        <div class="stat-label">
+          <span style="color:#e2f21f;font-weight:500;">${item.label}</span><br>
+          ${item.desc}
+        </div>
+      `;
+      statsGrid.appendChild(div);
+    });
+
+    // ---------- Gallery ----------
+    document.getElementById('gallery-title').textContent = CONFIG.gallery.title;
+    document.getElementById('gallery-desc').textContent = CONFIG.gallery.description;
+    const galleryGrid = document.getElementById('gallery-grid');
+    CONFIG.gallery.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'tool-card';
+      div.innerHTML = `
+        <img loading="lazy" src="${item.src}" alt="${item.alt}" class="tool-matrix-img">
+        <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">${item.title}</div>
+      `;
+      galleryGrid.appendChild(div);
+    });
+
+    // ---------- Workflow ----------
+    document.getElementById('workflow-title').textContent = CONFIG.workflow.title;
+    document.getElementById('workflow-desc').textContent = CONFIG.workflow.description;
+    const workflowGrid = document.getElementById('workflow-grid');
+    CONFIG.workflow.steps.forEach(step => {
+      const div = document.createElement('div');
+      div.className = 'content-card';
+      div.innerHTML = `
+        <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP ${step.number}</div>
+        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${step.title}</h4>
+        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${step.desc}</p>
+      `;
+      workflowGrid.appendChild(div);
+    });
+
+    // ---------- Videos ----------
+    document.getElementById('videos-title').textContent = CONFIG.videos.title;
+    document.getElementById('videos-desc').textContent = CONFIG.videos.description;
+    const videosGrid = document.getElementById('videos-grid');
+    CONFIG.videos.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'video-card';
+      div.innerHTML = `
+        <div class="video-wrapper">
+          <video src="${item.src}" controls muted loop playsinline preload="metadata" poster=""></video>
+        </div>
+        <div class="video-card-title">${item.title}</div>
+      `;
+      videosGrid.appendChild(div);
+    });
+
+    // ---------- Difference ----------
+    document.getElementById('diff-title').textContent = CONFIG.difference.title;
+    document.getElementById('diff-desc').textContent = CONFIG.difference.description;
+    const diffGrid = document.getElementById('diff-grid');
+    CONFIG.difference.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'p-6 rounded-[18px] border border-white/[0.06]';
+      div.style.background = 'rgba(255,255,255,0.02)';
+      div.innerHTML = `
+        <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">${item.number}</div>
+        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${item.title}</h4>
+        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${item.desc}</p>
+      `;
+      diffGrid.appendChild(div);
+    });
+
+    // ---------- Quote ----------
+    document.getElementById('quote-text').textContent = CONFIG.quote.text;
+    document.getElementById('quote-source').textContent = CONFIG.quote.source;
+
+    // ---------- Footer ----------
+    document.getElementById('footer-right').textContent = CONFIG.footer.right;
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ===================== 交互逻辑 ===================== -->
+  <!-- ============================================================ -->
+  <script>
+    // 导航栏滚动变色
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
+    });
+
+    // 鼠标位置追踪（spotlight + card glow）
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+    });
+
+    // 卡片内鼠标位置（光晕跟随）
+    document.querySelectorAll('.card-glow').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+
+    // GSAP 滚动动画
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    });
+
+    // 数字滚动动画
+    gsap.utils.toArray('.stat-number').forEach(el => {
+      gsap.from(el, {
+        textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
+        scrollTrigger: { trigger: el, start: 'top 85%' }
+      });
+    });
+
+    // 图片点击放大 + 左右切换
+    const caseImgs = Array.from(document.querySelectorAll('.case-img'));
+    caseImgs.forEach((img, idx) => {
+      img.addEventListener('click', () => openLightbox(idx));
+    });
+
+    function openLightbox(startIdx) {
+      let currentIdx = startIdx;
+      const overlay = document.createElement('div');
+      overlay.className = 'img-lightbox';
+
+      const imgEl = document.createElement('img');
+      imgEl.src = caseImgs[currentIdx].src;
+      imgEl.alt = caseImgs[currentIdx].alt;
+
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'lightbox-nav lightbox-prev';
+      prevBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
+      prevBtn.setAttribute('aria-label', '上一张');
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'lightbox-nav lightbox-next';
+      nextBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>';
+      nextBtn.setAttribute('aria-label', '下一张');
+
+      const counter = document.createElement('div');
+      counter.className = 'lightbox-counter';
+      counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length;
+
+      function updateImg() {
+        imgEl.src = caseImgs[currentIdx].src;
+        imgEl.alt = caseImgs[currentIdx].alt;
+        counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length;
+      }
+
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentIdx = (currentIdx - 1 + caseImgs.length) % caseImgs.length;
+        updateImg();
+      });
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentIdx = (currentIdx + 1) % caseImgs.length;
+        updateImg();
+      });
+
+      overlay.appendChild(imgEl);
+      overlay.appendChild(prevBtn);
+      overlay.appendChild(nextBtn);
+      overlay.appendChild(counter);
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('active'));
+
+      const close = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 300);
+        document.removeEventListener('keydown', onKey);
+      };
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target === imgEl) close();
+      });
+
+      function onKey(e) {
+        if (e.key === 'Escape') close();
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
+      }
+      document.addEventListener('keydown', onKey);
+    }
+
+    const initSmoothScroll = () => {
+      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
+      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      return lenis;
+    };
+    initSmoothScroll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="公众号 AI 写作 Skill，从选题到推送三层封装，把脑子里的经验变成机器能跑的流程。">
+  <title>AI 公众号写作 Skill | 陈楠</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000',
+              text: '#ffffff',
+              muted: 'rgba(255,255,255,0.55)',
+              sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)',
+              borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)',
+              surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background-color: #000;
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, .font-mono {
+      font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace;
+    }
+    ::selection { background: #ff9ac8; color: #000; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background-color: transparent; backdrop-filter: blur(0px);
+      border-bottom: 1px solid transparent;
+      transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s;
+    }
+    .header.is-scrolled {
+      padding-top: 1rem; padding-bottom: 1rem;
+      background-color: rgba(0,0,0,0.55);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border-bottom-color: rgba(255,255,255,0.06);
+    }
+    .header-logo {
+      flex: 1; color: rgba(255,255,255,0.55); text-decoration: none;
+      display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s;
+    }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) {
+      .header { padding: 1rem 1.5rem; }
+      .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    }
+
+    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%);
+    }
+    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      filter: blur(120px); will-change: transform;
+    }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%;
+      background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%);
+      animation: blobFloat1 20s ease-in-out infinite;
+    }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%;
+      background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%);
+      animation: blobFloat2 24s ease-in-out infinite;
+    }
+    @keyframes blobFloat1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(-50px,80px) scale(1.1); }
+      66% { transform: translate(40px,-40px) scale(0.95); }
+    }
+    @keyframes blobFloat2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(60px,-50px) scale(1.15); }
+      66% { transform: translate(-30px,40px) scale(0.9); }
+    }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none;
+      background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%);
+    }
+    .card-glow { position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.6s cubic-bezier(0.22,1,0.36,1),
+                  background-color 0.6s cubic-bezier(0.22,1,0.36,1);
+    }
+    .card-glow::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0;
+      background:
+        radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent),
+        radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%);
+      transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+    }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover {
+      border-color: rgba(226,242,31,0.55);
+      background-color: rgba(255,255,255,0.14);
+      box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .card-glow > * { position: relative; z-index: 1; }
+
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em;
+      width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7;
+    }
+
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      transition: all 0.3s;
+    }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+
+    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: zoom-in; }
+    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .img-lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; cursor: zoom-out; opacity: 0; transition: opacity 0.3s ease; }
+    .img-lightbox.active { opacity: 1; }
+    .img-lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0; }
+    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
+    .lightbox-prev { left: 16px; } .lightbox-next { right: 16px; }
+    @media (min-width: 768px) { .lightbox-prev { left: 32px; } .lightbox-next { right: 32px; } }
+    .lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em; }
+
+    @keyframes ripple-out {
+      0% { transform: scale(0.35); opacity: 0.7; }
+      100% { transform: scale(2.20); opacity: 0.0; }
+    }
+
+    .tool-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px;
+      padding: 20px 12px;
+      border-radius: 14px;
+      transition: background 0.3s;
+    }
+    .tool-card:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .tool-matrix-img {
+      width: 78px; height: 78px;
+      object-fit: contain;
+      border-radius: 10px;
+      transition: transform 0.3s ease;
+      display: block;
+      margin: 0 auto;
+    }
+    .tool-card:hover .tool-matrix-img {
+      transform: scale(1.12);
+    }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <!-- 全局视觉层 -->
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <!-- 导航栏 -->
+  <header class="header" id="header">
+    <a href="../../index.html#project-9" class="header-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      <span>返回首页</span>
+    </a>
+    <div class="header-right">
+      <a href="#results" class="header-social"><span>量化成果</span></a>
+      <a href="#methodology" class="header-social"><span>核心流程</span></a>
+    </div>
+  </header>
+
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]">2026 · 独立设计 & 开发</span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);">即装即用 · GitHub 开源</span>
+      </div>
+
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
+        把公众号写作经验<br><span class="text-white/75">封装成</span> <span style="color:#e2f21f;">可复用的 AI Skill</span>
+      </h1>
+
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl">
+        公众号写作最大的瓶颈不是"写不出来"，而是<strong style="color:#fff;">每次都从零开始</strong>。我把它拆成了三层可复用架构——Prompt 定义判断、工作流编排步骤、代码模板处理格式，人只做选题和最终审核，单篇从 2 小时压到 3 分钟。
+      </p>
+
+      <div class="mt-10 flex flex-wrap gap-3">
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>隐性经验 → 可执行 Skill
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>三层架构 · 五步闭环
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>人定选题 + AI 写全文
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>可迁移至小红书 · 知乎 · Newsletter
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. 量化成果 -->
+  <section class="py-20 px-8 sm:px-12" id="results">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-12 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">量化成果</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl">
+          传统公众号写作平均 2 小时以上。这套 Skill 把全流程压缩到 3 分钟，人只做选题和审核。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 scroll-reveal">
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">40</span>×</div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">效率提升</span><br>
+            2h → 3min，每次写作不再从零开始
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">5</span>步</div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">全自动闭环</span><br>
+            选题→素材→写作→标题→推送
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">1</span>人</div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">只做判断，不动笔</span><br>
+            人定选题 + 审核，AI 写全文
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">1</span>键</div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">推送到草稿箱</span><br>
+            人只负责点群发
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 核心流程 -->
+  <section class="py-20 px-8 sm:px-12" id="methodology">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">核心流程：选题 → 素材 → 写作 → 标题 → 推送</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl">
+          五步闭环，每步有固定输入、固定输出。Skill 管流程，人只做选题和审核。
+        </p>
+      </div>
+      <div class="mt-8 scroll-reveal">
+        <img loading="lazy" src="Xnapper-2026-07-02-15.18.54.webp" alt="核心流程：选题 → 素材 → 写作 → 标题 → 推送" class="case-img" style="border-radius:16px;">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal mt-8">
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 01</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">接收选题</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">用户提供话题或关键词。无选题时 AI 自动生成 5 个候选，每个附选题理由。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 02</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">素材搜集</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">AI 自动搜索并整理观点、案例、金句、反常识角度、读者痛点，结构化输出素材库。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 03</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">写作正文</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">基于大纲完成全文。内置去 AI 味规则：口语化短句、关键句加粗、案例带数字，1500-2000 字。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 04</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">标题 + 封面</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">5 种标题公式各生成 3 个候选，选 Top 1。同步生成封面提示词，可直接投入 Midjourney / GPT-4o。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 05</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">排版推送</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">Markdown 转公众号 HTML，自动推送至草稿箱。人只需进后台点群发。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 产品截图 -->
+  <section class="pb-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 scroll-reveal">
+        <h2 class="text-[1.1rem] font-semibold tracking-[-0.02em] text-white/90">即装即用</h2>
+        <a href="https://github.com/LillltaChen/chen-wechat-ai-writer" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-[0.8rem] text-white/40 hover:text-[#e2f21f] transition-colors shrink-0">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <span>GitHub 开源</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </a>
+      </div>
+      <a href="https://github.com/LillltaChen/chen-wechat-ai-writer" target="_blank" class="card-glow rounded-[22px] border border-white/[0.08] overflow-hidden scroll-reveal block group relative">
+        <img loading="lazy" src="Xnapper-2026-06-12-02.33.23.webp" alt="wechat-ai-writer 系统工作流介绍" class="w-full transition-transform duration-300 group-hover:scale-[1.01]" style="display:block;">
+        <div class="absolute inset-0 rounded-[22px] bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+          <span class="opacity-0 group-hover:opacity-100 transition-opacity text-[0.75rem] text-white/70 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm">在 GitHub 查看源码 →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 4. 关键认知 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto">
+          "这不是一个 prompt，这是一套可迭代、可复用、可迁移的内容生产架构。"
+        </p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase">方法论沉淀</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20">
+        <span>Built with Claude Code</span><span>·</span>
+        <span>ChatGPT</span><span>·</span>
+        <span>GitHub Actions</span><span>·</span>
+        <span>WeChat API</span>
+      </div>
+      <p>vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+
+  <!-- 背景视频 -->
+  <video autoplay muted loop playsinline style="position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;object-fit:cover;opacity:0.55;">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+
+
+  <!-- JS -->
+  <script>
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
+    });
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+    });
+    document.querySelectorAll('.card-glow').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    });
+
+    gsap.utils.toArray('.stat-number').forEach(el => {
+      gsap.from(el, {
+        textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
+        scrollTrigger: { trigger: el, start: 'top 85%' }
+      });
+    });
+
+    // 图片灯箱
+    document.querySelectorAll('.case-img').forEach(img => {
+      img.addEventListener('click', () => {
+        const overlay = document.createElement('div'); overlay.className = 'img-lightbox';
+        const imgEl = document.createElement('img'); imgEl.src = img.src; imgEl.alt = img.alt;
+        overlay.appendChild(imgEl);
+        document.body.appendChild(overlay); requestAnimationFrame(() => overlay.classList.add('active'));
+        const close = () => { overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 300); document.removeEventListener('keydown', onKey); };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay || e.target === imgEl) close(); });
+        function onKey(e) { if (e.key === 'Escape') close(); }
+        document.addEventListener('keydown', onKey);
+      });
+    });
+
+    const initSmoothScroll = () => {
+      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
+      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      return lenis;
+    };
+    initSmoothScroll();
+  </script>
+</body>
+</html>

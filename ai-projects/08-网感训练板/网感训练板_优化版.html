@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="网感训练板，把不可言传的网感拆成可训练的方法，让内容判断从靠猜变成靠数据。">
+  <title>网感训练板 | 陈楠</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000',
+              text: '#ffffff',
+              muted: 'rgba(255,255,255,0.55)',
+              sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)',
+              borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)',
+              surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background-color: #000;
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, .font-mono {
+      font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace;
+    }
+    ::selection { background: #ff9ac8; color: #000; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background-color: transparent; backdrop-filter: blur(0px);
+      border-bottom: 1px solid transparent;
+      transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s;
+    }
+    .header.is-scrolled {
+      padding-top: 1rem; padding-bottom: 1rem;
+      background-color: rgba(0,0,0,0.55);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border-bottom-color: rgba(255,255,255,0.06);
+    }
+    .header-logo {
+      flex: 1; color: rgba(255,255,255,0.55); text-decoration: none;
+      display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s;
+    }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) {
+      .header { padding: 1rem 1.5rem; }
+      .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    }
+
+    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%);
+    }
+    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      filter: blur(120px); will-change: transform;
+    }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%;
+      background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%);
+      animation: blobFloat1 20s ease-in-out infinite;
+    }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%;
+      background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%);
+      animation: blobFloat2 24s ease-in-out infinite;
+    }
+    @keyframes blobFloat1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(-50px,80px) scale(1.1); }
+      66% { transform: translate(40px,-40px) scale(0.95); }
+    }
+    @keyframes blobFloat2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(60px,-50px) scale(1.15); }
+      66% { transform: translate(-30px,40px) scale(0.9); }
+    }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none;
+      background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%);
+    }
+    .card-glow { position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.6s cubic-bezier(0.22,1,0.36,1),
+                  background-color 0.6s cubic-bezier(0.22,1,0.36,1);
+    }
+    .card-glow::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0;
+      background:
+        radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent),
+        radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%);
+      transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+    }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover {
+      border-color: rgba(226,242,31,0.55);
+      background-color: rgba(255,255,255,0.14);
+      box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .card-glow > * { position: relative; z-index: 1; }
+
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em;
+      width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7;
+    }
+
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      transition: all 0.3s;
+    }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+
+    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: zoom-in;
+    }
+    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+    .img-lightbox {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.92);
+      display: flex; align-items: center; justify-content: center;
+      cursor: zoom-out; opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .img-lightbox.active { opacity: 1; }
+    .img-lightbox img {
+      max-width: 90vw; max-height: 90vh;
+      object-fit: contain; border-radius: 8px;
+      cursor: zoom-out;
+    }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0;
+    }
+    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
+    .lightbox-prev { left: 16px; }
+    .lightbox-next { right: 16px; }
+    @media (min-width: 768px) {
+      .lightbox-prev { left: 32px; }
+      .lightbox-next { right: 32px; }
+    }
+    .lightbox-counter {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em;
+    }
+
+    @keyframes ripple-out {
+      0% { transform: scale(0.35); opacity: 0.7; }
+      100% { transform: scale(2.20); opacity: 0.0; }
+    }
+
+    /* ===== 工具矩阵 ===== */
+    .tool-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px;
+      padding: 20px 12px;
+      border-radius: 14px;
+      transition: background 0.3s;
+    }
+    .tool-card:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .tool-matrix-img {
+      width: 78px; height: 78px;
+      object-fit: contain;
+      border-radius: 10px;
+      transition: transform 0.3s ease;
+      display: block;
+      margin: 0 auto;
+    }
+    .tool-card:hover .tool-matrix-img {
+      transform: scale(1.12);
+    }
+    .tool-icon {
+      width: 78px; height: 78px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; font-weight: 700;
+      color: #fff;
+      transition: transform 0.3s ease;
+    }
+    .tool-card:hover .tool-icon {
+      transform: scale(1.12);
+    }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <!-- 全局视觉层 -->
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <!-- 导航栏 -->
+  <header class="header" id="header">
+    <a href="../../index.html#project-8" class="header-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      <span>返回首页</span>
+    </a>
+    <div class="header-right">
+      <a href="#results" class="header-social"><span>量化成果</span></a>
+      <a href="#methodology" class="header-social"><span>核心流程</span></a>
+    </div>
+  </header>
+
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]">2026 · 独立设计 & 开发</span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);">Vibe Coding · 独立开发</span>
+      </div>
+
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
+        把"网感"从玄学<br><span class="text-white/75">变成</span> <span style="color:#e2f21f;">可训练的能力</span>
+      </h1>
+
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl">
+        内容行业用"悟性"解释一切，但没人拆这个黑箱。我用 Vibe Coding 独立开发了这个训练工具——把"网感"拆成<strong style="color:#fff;">可训练的维度</strong>，像做试卷一样打分、对答案、复盘错在哪。拆解效率 <strong style="color:#e2f21f;">10×</strong> 提升，准确率从 40% 练到 70%。
+      </p>
+
+      <!-- 方法论标签 -->
+      <div class="mt-10 flex flex-wrap gap-3">
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>Vibe Coding · 独立闭环
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>预测 → 对比 → 校准闭环
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>赛道自适应评分引擎
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>领域弱耦合 · 框架可迁移
+        </span>
+      </div>
+    </div>
+  </header>
+  <!-- 1. 痛点 -->
+  <section class="py-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">行业痛点</h2>
+      </div>
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.25rem] text-white/70 leading-[1.7] font-medium max-w-2xl">
+          "网感靠悟性"是行业默认共识——大量刷内容"泡"出来，<strong class="text-white">没记录、没校准、没进步</strong>。判断准确率始终停留在靠猜的 <span style="color:#e2f21f;">40%</span>，无法追踪、无法复盘、无法提升。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 量化成果 -->
+  <section class="py-20 px-8 sm:px-12" id="results">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">量化成果</h2>
+      </div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 scroll-reveal">
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">10</span>×</div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">效率提升</span><br>
+            单条拆解 30-60min → 3-5min
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">70</span>%</div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">判断准确率</span><br>
+            训练前靠猜 40% → 训练后 70%
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">22</span></div>
+          <div class="stat-label">
+            <span style="color:#e2f21f;font-weight:500;">平台覆盖</span><br>
+            公众号到小红书，一套框架全搞定
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 功能预览 -->
+  <section class="pb-16 px-8 sm:px-12" id="preview">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 scroll-reveal">
+        <h2 class="text-[1.1rem] font-semibold tracking-[-0.02em] text-white/90">功能预览</h2>
+        <a href="https://lillltachen.github.io/net-sense-trainer/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-[0.8rem] text-white/40 hover:text-[#e2f21f] transition-colors shrink-0">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <span>在线体验</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+        </a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 scroll-reveal">
+        <div class="card-glow rounded-[14px] overflow-hidden"><img loading="lazy" src="deploy-点开使用/images/case-01.webp" alt="截图 01" class="case-img"></div>
+        <div class="card-glow rounded-[14px] overflow-hidden"><img loading="lazy" src="deploy-点开使用/images/case-02.webp" alt="截图 02" class="case-img"></div>
+        <div class="card-glow rounded-[14px] overflow-hidden"><img loading="lazy" src="deploy-点开使用/images/case-03.webp" alt="截图 03" class="case-img"></div>
+        <div class="card-glow rounded-[14px] overflow-hidden"><img loading="lazy" src="deploy-点开使用/images/case-04.webp" alt="截图 04" class="case-img"></div>
+        <div class="card-glow rounded-[14px] overflow-hidden"><img loading="lazy" src="deploy-点开使用/images/case-05.webp" alt="截图 05" class="case-img"></div>
+        <div class="card-glow rounded-[14px] overflow-hidden"><img loading="lazy" src="deploy-点开使用/images/case-06.webp" alt="截图 06" class="case-img"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 方法架构：5D 可复现流程 -->
+  <section class="py-20 px-8 sm:px-12" id="methodology">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">方法架构：5D 可复现流程</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl">
+          把一次内容判断的经验，抽象成可复现任意选题的思维框架。采集 → 拆解 → 判断 → 对比 → 强化，五步闭环，每步独立复用。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 scroll-reveal">
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">D1</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">Detect 采集</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">粘贴链接自动解析，22 平台一键采集内容素材。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">D2</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">Deconstruct 拆解</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">AI 六步法评分：钩子 × 情绪 × 结构，模拟资深运营的拆解视角。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">D3</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">Decide 判断</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">三种训练模式，从拆解填空到维度聚焦到评论预言，层层递进练判断。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">D4</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">Diff 对比</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">即时对比真实数据，命中 / 接近 / 偏差三档反馈，校准直觉。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">D5</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">Drill 强化</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">雷达图定位短板，薄弱平台/维度自动多练，针对性提升。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 关键认知 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto">
+          "行业说网感靠悟性，本质上是没人愿意把它拆清楚。一旦把'感觉'翻译成可量化的维度和可闭环的步骤，任何人都能练出准度。"
+        </p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase">方法论沉淀</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20">
+        <span>Built with Python</span><span>·</span>
+        <span>FastAPI</span><span>·</span>
+        <span>SQLite</span><span>·</span>
+        <span>Tailwind CSS</span><span>·</span>
+        <span>GSAP</span><span>·</span>
+        <span>Claude Code</span>
+      </div>
+      <p>vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+  <!-- 背景视频 -->
+  <video autoplay muted loop playsinline style="position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;object-fit:cover;opacity:0.55;">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+
+  <!-- JS -->
+  <script>
+    window.addEventListener('scroll', () => {
+      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
+    });
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+    });
+    document.querySelectorAll('.card-glow').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+      });
+    });
+
+    gsap.utils.toArray('.stat-number').forEach(el => {
+      gsap.from(el, {
+        textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
+        scrollTrigger: { trigger: el, start: 'top 85%' }
+      });
+    });
+
+    // 图片点击放大 + 左右切换
+    const caseImgs = Array.from(document.querySelectorAll('.case-img'));
+    caseImgs.forEach((img, idx) => {
+      img.addEventListener('click', () => openLightbox(idx));
+    });
+
+    function openLightbox(startIdx) {
+      let currentIdx = startIdx;
+      const overlay = document.createElement('div');
+      overlay.className = 'img-lightbox';
+
+      const imgEl = document.createElement('img');
+      imgEl.src = caseImgs[currentIdx].src;
+      imgEl.alt = caseImgs[currentIdx].alt;
+
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'lightbox-nav lightbox-prev';
+      prevBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
+      prevBtn.setAttribute('aria-label', '上一张');
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'lightbox-nav lightbox-next';
+      nextBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>';
+      nextBtn.setAttribute('aria-label', '下一张');
+
+      const counter = document.createElement('div');
+      counter.className = 'lightbox-counter';
+      counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length;
+
+      function updateImg() {
+        imgEl.src = caseImgs[currentIdx].src;
+        imgEl.alt = caseImgs[currentIdx].alt;
+        counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length;
+      }
+
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentIdx = (currentIdx - 1 + caseImgs.length) % caseImgs.length;
+        updateImg();
+      });
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentIdx = (currentIdx + 1) % caseImgs.length;
+        updateImg();
+      });
+
+      overlay.appendChild(imgEl);
+      overlay.appendChild(prevBtn);
+      overlay.appendChild(nextBtn);
+      overlay.appendChild(counter);
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('active'));
+
+      const close = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 300);
+        document.removeEventListener('keydown', onKey);
+      };
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target === imgEl) close();
+      });
+
+      function onKey(e) {
+        if (e.key === 'Escape') close();
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
+      }
+      document.addEventListener('keydown', onKey);
+    }
+
+    const initSmoothScroll = () => {
+      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
+      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      return lenis;
+    };
+    initSmoothScroll();
+  </script>
+</body>
+</html>

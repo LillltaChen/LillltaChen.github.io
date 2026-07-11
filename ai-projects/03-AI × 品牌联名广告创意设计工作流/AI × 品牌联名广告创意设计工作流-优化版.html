@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠 Chennan">
+  <meta name="description" content="AI 品牌联名广告创意设计工作流，五步把 2 周的团队协作变成一人 2 天可复现的流水线。">
+  <title>AI 品牌联名创意设计 | 陈楠</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
+          },
+          colors: {
+            ds: {
+              bg: '#000000', text: '#ffffff', muted: 'rgba(255,255,255,0.55)', sub: 'rgba(255,255,255,0.32)',
+              border: 'rgba(255,255,255,0.08)', borderLight: 'rgba(255,255,255,0.12)',
+              surface: 'rgba(255,255,255,0.03)', surfaceHover: 'rgba(255,255,255,0.06)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; background-color: #000; color: #fff; -webkit-font-smoothing: antialiased; }
+    code, .font-mono { font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace; }
+    ::selection { background: #ff9ac8; color: #000; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; background-color: transparent; backdrop-filter: blur(0px); border-bottom: 1px solid transparent; transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s; }
+    .header.is-scrolled { padding-top: 1rem; padding-bottom: 1rem; background-color: rgba(0,0,0,0.55); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom-color: rgba(255,255,255,0.06); }
+    .header-logo { flex: 1; color: rgba(255,255,255,0.55); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-logo:hover { color: #fff; }
+    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
+    .header-social { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
+    .header-social:hover { color: #fff; }
+    @media (max-width: 768px) { .header { padding: 1rem 1.5rem; } .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; } }
+    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none; background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%); }
+    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(120px); will-change: transform; }
+    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%; background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%); animation: blobFloat1 20s ease-in-out infinite; }
+    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%; background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%); animation: blobFloat2 24s ease-in-out infinite; }
+    @keyframes blobFloat1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,80px) scale(1.1); } 66% { transform: translate(40px,-40px) scale(0.95); } }
+    @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-50px) scale(1.15); } 66% { transform: translate(-30px,40px) scale(0.9); } }
+    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none; background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%); }
+    .card-glow { position: relative; overflow: hidden; background: rgba(255,255,255,0.08); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid rgba(255,255,255,0.08) !important; transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.6s cubic-bezier(0.22,1,0.36,1), background-color 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .card-glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0; background: radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent), radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%); transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1); pointer-events: none; }
+    .card-glow:hover::before { opacity: 1; }
+    .card-glow:hover { border-color: rgba(226,242,31,0.55); background-color: rgba(255,255,255,0.14); box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06); }
+    .card-glow > * { position: relative; z-index: 1; }
+    section h2 { position: relative; padding-left: 0.85rem; }
+    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em; width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7; }
+    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); transition: all 0.3s; }
+    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
+    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
+    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    .scroll-reveal { opacity: 0; transform: translateY(30px); }
+    @keyframes ripple-out { 0% { transform: scale(0.35); opacity: 0.7; } 100% { transform: scale(2.20); opacity: 0.0; } }
+    .tool-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border-radius: 14px; transition: background 0.3s; }
+    .tool-card:hover { background: rgba(255,255,255,0.03); }
+    .tool-matrix-img { width: 78px; height: 78px; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; display: block; margin: 0 auto; }
+    .tool-card:hover .tool-matrix-img { transform: scale(1.12); }
+  </style>
+</head>
+<body class="bg-ds-bg text-ds-text antialiased">
+
+  <div class="vignette"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <div class="spotlight-layer"></div>
+
+  <header class="header" id="header">
+    <a href="../../index.html#project-3" class="header-logo" aria-label="返回首页">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+      <span>返回首页</span>
+    </a>
+    <div class="header-right">
+      <a href="#methodology" class="header-social"><span>核心流程</span></a>
+      <a href="#case" class="header-social"><span>实战案例</span></a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <header class="pt-48 pb-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]">2026 · 独立设计 & 开发</span>
+        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);">一人管线 · 六平台交付</span>
+      </div>
+
+      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
+        把品牌创意<br><span class="text-white/75">从团队协作变成</span> <span style="color:#e2f21f;">一人流水线</span>
+      </h1>
+
+      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl">
+        品牌联名创意提案，传统方式要创意总监+设计师+运营多方协作，反复改稿反复对齐，2 周起步。我搭了一套 <strong style="color:#fff;">五步标准化管线</strong>：Brand Board 锁死品牌调性，AI 做发散和执行，人只拍板方向。创意周期从 2 周压到 <strong style="color:#e2f21f;">2 天</strong>，六平台素材一键适配。
+      </p>
+
+      <div class="mt-10 flex flex-wrap gap-3">
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>Brand Board 锁死调性
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>AI 发散 · 人拍板
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>六平台一键适配
+        </span>
+        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
+          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>提案 Deck 自动生成
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 痛点 -->
+  <section class="py-20 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">行业痛点</h2>
+      </div>
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.25rem] text-white/70 leading-[1.7] font-medium max-w-2xl">
+          品牌联名创意提案<strong class="text-white">重度依赖人工协作</strong>——创意总监定方向、设计师出图、运营适配平台，沟通成本高，改一版动全身。<span style="color:#e2f21f;">一个人做不了，因为没调性锚点</span>——每轮反馈都可能跑偏，项目周期被反复拉长。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核心流程 -->
+  <section class="py-20 px-8 sm:px-12" id="methodology">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">方法架构：五步可复现流程</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl">
+          人定方向，AI 做执行。把一次联名创意的经验，拆成情报收集 → Brand Board → 概念发散 → 批量出图 → 提案交付五个独立步骤，每一步可独立迭代、跨品牌复用。
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal">
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 01</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">情报收集</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">定向收集 3-5 张心动参考图，研究同类联名案例，建立视觉基准库。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 02</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">Brand Board 风格锚定</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">拆解品牌五维度视觉基准：色彩、字体、构图、情绪、元素。用 Brand Board 锁死调性，批量生产不跑偏。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 03</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">概念发散</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">AI 输出 3-5 个差异化概念方向，人判断选择最优。每个方向附视觉 mood board + 文案方向 + 平台适配建议。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 04</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">批量出图</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">选定概念后，按 Brand Board 约束批量生成六平台素材。自动化脚本处理尺寸适配和输出格式。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 05</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">提案交付</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">自动生成提案 Deck（品牌拆解 + 概念视觉 + 六平台素材），可直接用于客户提案。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 实战案例 -->
+  <section class="py-20 px-8 sm:px-12" id="case">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 scroll-reveal">
+        <div>
+          <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-3">星巴克 × 泡泡玛特 实战案例</h2>
+          <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-lg">
+            从品牌解构到六平台交付，一人 2 天跑完全案。核心概念「大人的童心」，主色调 Starbucks Green + Molly 湖绿。
+          </p>
+        </div>
+        <a href="工作流执行/星巴克×泡泡玛特%20SBKxPOP/04-提案Deck/星巴克×泡泡玛特_联名设计提案.pdf" target="_blank" class="block group shrink-0">
+          <div class="card-glow rounded-[18px] border border-white/[0.08] px-5 py-4 flex items-center gap-3">
+            <svg class="w-5 h-5 text-white/40 group-hover:text-[#e2f21f] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+            </svg>
+            <div>
+              <div class="text-[0.9rem] font-semibold text-white/90">查看完整提案 Deck</div>
+              <div class="text-[0.75rem] text-white/40">品牌拆解 · 概念视觉 · 六平台素材</div>
+            </div>
+            <svg class="w-4 h-4 text-white/30 group-hover:text-[#e2f21f] group-hover:rotate-[-45deg] transition-all duration-300 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+            </svg>
+          </div>
+        </a>
+      </div>
+
+      <!-- 案例演示视频 -->
+      <div class="mb-10 scroll-reveal">
+        <div class="card-glow rounded-[22px] border border-white/[0.08] overflow-hidden">
+          <video controls playsinline preload="metadata" class="w-full aspect-video object-cover" style="display:block;">
+            <source src="export-1779788960468.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal">
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">DECISION 01</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">三版概念，人拍板定方向</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">生成「盲盒咖啡师」「第三空间惊喜角」「联名限定杯」三个方向，人锁定 A 方向。AI 发散，人收敛。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">DECISION 02</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">风格基准锁死调性</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">Brand Board 覆盖五维度，确保 13+ 张素材跨六平台调性一致。没有它，批量生产必然跑偏。</p>
+        </div>
+        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">DECISION 03</div>
+          <h4 class="text-[0.95rem] font-semibold text-white mb-2">自动化脚本替代手工</h4>
+          <p class="text-[0.8rem] text-white/50 leading-[1.7]">自研脚本一键完成六平台尺寸适配和批量重命名。微信 2.35:1、抖音 9:16、小红书 3:4 等精确尺寸零手工。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 量化成果 -->
+  <section class="py-20 px-8 sm:px-12" id="results">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-12 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">量化成果</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl">
+          传统品牌创意依赖创意总监+设计师+运营多人协作。这套方法把全流程压缩为一人可执行的五步标准化闭环。
+        </p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 scroll-reveal">
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">7</span>×</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">效率提升</span><br>2周 → 2天，品牌调性不漂移</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">5</span>步</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">标准化闭环</span><br>每步独立迭代，跨品牌复用</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">6</span>平台</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">一键适配</span><br>微信·抖音·小红书·微博·B站·快手</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><span class="stat-number">1</span>人</div>
+          <div class="stat-label"><span style="color:#e2f21f;font-weight:500;">全流程交付</span><br>替代创意总监+设计师+运营</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 工具矩阵 -->
+  <section class="py-20 px-8 sm:px-12" id="tools">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-10 scroll-reveal">
+        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">工具矩阵</h2>
+        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl">每个环节对应的最优 AI 工具</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 scroll-reveal">
+        <div class="tool-card"><img loading="lazy" src="./icon/python.webp" alt="Python" class="tool-matrix-img"><div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">自研脚本</div></div>
+        <div class="tool-card"><img loading="lazy" src="./icon/openai-light.webp" alt="ChatGPT" class="tool-matrix-img"><div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">ChatGPT</div></div>
+        <div class="tool-card"><img loading="lazy" src="./icon/nanobanana-color-dark.webp" alt="nanobanana" class="tool-matrix-img"><div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">nanobanana</div></div>
+        <div class="tool-card"><img loading="lazy" src="./icon/claudecode-color-dark.webp" alt="Claude Code" class="tool-matrix-img"><div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">Claude Code</div></div>
+        <div class="tool-card"><img loading="lazy" src="./icon/kimi-color-dark.webp" alt="Kimi Code" class="tool-matrix-img"><div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">Kimi Code</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 关键认知 -->
+  <section class="py-16 px-8 sm:px-12">
+    <div class="max-w-5xl mx-auto">
+      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
+        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto">
+          "Brand Board 的作用不是替代你的审美判断，而是把判断写成规则。规则定了，机器才知道你要什么。"
+        </p>
+        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase">方法论沉淀</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
+      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20">
+        <span>Built with Python</span><span>·</span>
+        <span>ChatGPT</span><span>·</span>
+        <span>nanobanana</span><span>·</span>
+        <span>Claude Code</span>
+      </div>
+      <p>vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+
+  <video autoplay muted loop playsinline style="position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;object-fit:cover;opacity:0.55;">
+    <source src="../../pixel-blast-bg.webm" type="video/webm">
+  </video>
+
+  <script>
+    window.addEventListener('scroll', () => { document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20); });
+    document.addEventListener('mousemove', (e) => { document.body.style.setProperty('--mouse-x', e.clientX + 'px'); document.body.style.setProperty('--mouse-y', e.clientY + 'px'); });
+    document.querySelectorAll('.card-glow').forEach(card => { card.addEventListener('mousemove', (e) => { const rect = card.getBoundingClientRect(); card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px'); card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px'); }); });
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.utils.toArray('.scroll-reveal').forEach(el => { gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' } }); });
+    gsap.utils.toArray('.stat-number').forEach(el => { gsap.from(el, { textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 }, scrollTrigger: { trigger: el, start: 'top 85%' } }); });
+    const initSmoothScroll = () => { if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null; const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true }); gsap.ticker.add((time) => { lenis.raf(time * 1000); }); gsap.ticker.lagSmoothing(0); return lenis; };
+    initSmoothScroll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="author" content="陈楠">
+  <meta name="description" content="关于 陈楠 —— AI Agent 工作流搭建与沉淀。把内容生产从手工作坊变成流水线。">
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="关于 — 陈楠">
+  <meta property="og:description" content="关于 陈楠 —— AI Agent 工作流搭建与沉淀。把内容生产从手工作坊变成流水线。">
+  <meta property="og:image" content="../assets/ico.webp">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="关于 — 陈楠">
+  <meta name="twitter:description" content="关于 陈楠 —— AI Agent 工作流搭建与沉淀。把内容生产从手工作坊变成流水线。">
+  <meta name="twitter:image" content="../assets/ico.webp">
+  <meta name="twitter:creator" content="@faaaannng">
+  <title>关于 — 陈楠</title>
+  <link rel="icon" type="image/png" href="../assets/ico.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght@100..900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .site-footer-mark { color: rgba(255, 255, 255, 0.6); }
+
+
+    .about-main { padding-top: 10rem; padding-bottom: 8rem; }
+
+    /* Header */
+    .about-header-new { margin-bottom: 6rem; }
+    .about-header-title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 500; letter-spacing: 0.02em; line-height: 1.3; color: #fff; margin-bottom: 0.6rem; }
+    .about-header-sub { font-size: 0.92rem; color: rgba(255,255,255,0.45); font-weight: 400; }
+
+
+    /* Sections */
+    .about-section { margin-bottom: 7rem; }
+    .about-section:last-of-type { margin-bottom: 0; }
+    .about-section-title { font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 2.5rem; }
+
+    /* Principles */
+    .about-principles-lead { font-size: 0.92rem; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
+    .about-principles { display: flex; flex-direction: column; gap: 2rem; }
+    .about-principle-item { display: flex; gap: 1.5rem; align-items: baseline; }
+    .about-principle-num { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.3); min-width: 1.5rem; font-feature-settings: "tnum"; }
+    .about-principle-item p:last-child { font-size: 1.15rem; line-height: 1.6; color: rgba(255,255,255,0.85); }
+
+    /* Selected works */
+    .about-selected-list { display: flex; flex-direction: column; gap: 4rem; }
+    .about-selected-item { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 4rem; }
+    .about-selected-item:first-child { border-top: none; padding-top: 0; }
+    .about-selected-tag { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.6rem; }
+    .about-selected-item h3 { font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem; }
+    .about-selected-item h3 a { color: rgba(255,255,255,0.9); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; }
+    .about-selected-item h3 a:hover { color: #fff; }
+    .about-selected-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.5; }
+    .about-selected-item h3 a:hover .about-selected-icon { opacity: 1; }
+    .about-selected-item > p { font-size: 0.92rem; line-height: 1.75; color: rgba(255,255,255,0.65); max-width: 560px; }
+
+    /* All works link */
+    .about-all-works { margin-top: 3rem; }
+    .about-all-works a { font-size: 0.9rem; color: rgba(255,255,255,0.5); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .about-all-works a:hover { color: rgba(255,255,255,0.8); }
+    .about-all-works-arrow { width: 14px; height: 14px; opacity: 0.5; }
+
+    /* Social proof */
+    .about-social-item { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 2.5rem; }
+    .about-social-item:first-child { border-top: none; padding-top: 0; }
+    .about-social-item h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.75rem; }
+    .about-social-item h3 a { color: rgba(255,255,255,0.85); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; }
+    .about-social-item h3 a:hover { color: #fff; }
+    .about-social-item > p { font-size: 0.92rem; line-height: 1.75; color: rgba(255,255,255,0.6); max-width: 560px; }
+    .about-social-item a[href*="xhslink.com"]:hover { color: #ff2442; }
+
+    /* Contact */
+    .about-contact { margin-top: 7rem; }
+    #about-contact-title { margin-bottom: 0.8rem; }
+    .about-contact-grid { display: grid; grid-template-columns: auto 1fr; gap: 3rem; align-items: center; justify-content: start; }
+    .about-contact-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .about-contact-item { display: flex; align-items: center; gap: 16px; padding: 0.9rem 2rem 0.9rem 0; background: none; border: none; color: inherit; cursor: pointer; font-size: 0.92rem; width: 100%; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background-color 0.3s; border-radius: 6px; position: relative; }
+    .about-contact-item:hover { color: #fff; background-color: rgba(255,255,255,0.03); }
+    .about-contact-item.is-copied { background-color: rgba(255,255,255,0.08); }
+    .about-contact-kind { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.35); min-width: 3.2rem; transition: color 0.2s; }
+    .about-contact-item:hover .about-contact-kind { color: rgba(255,255,255,0.6); }
+    .about-contact-value { color: rgba(255,255,255,0.7); letter-spacing: 0.02em; }
+    .about-contact-item:hover .about-contact-value { color: rgba(255,255,255,0.95); }
+    .about-contact-arrow { width: 14px; height: 14px; opacity: 0.25; flex-shrink: 0; transition: opacity 0.2s; }
+    .about-contact-item:hover .about-contact-arrow,
+    .about-contact-item.is-copied .about-contact-arrow { opacity: 0; }
+    .copy-hint { font-size: 0.7rem; color: rgba(255,255,255,0.55); white-space: nowrap; transition: color 0.2s; }
+    .about-copy-wrap { display: grid; flex-shrink: 0; width: 42px; justify-items: end; }
+    .about-copy-wrap > * { grid-area: 1 / 1; }
+    .about-copy-wrap .copy-hint { opacity: 0; transition: opacity 0.2s; }
+    .about-contact-item:hover .about-copy-wrap .copy-hint,
+    .about-contact-item.is-copied .about-copy-wrap .copy-hint { opacity: 1; }
+
+
+    .about-qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 44px; justify-self: end; }
+    .about-qr { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .about-qr-image { width: 130px; height: 130px; border-radius: 8px; display: block; }
+    .about-qr-caption { font-size: 0.7rem; color: rgba(255,255,255,0.35); text-align: center; }
+    .about-qr-placeholder svg { width: 22px; height: 22px; margin-bottom: 0.2rem; }
+
+    /* Footer */
+    .notes-footer { padding-top: 2rem; max-width: none; margin: 4rem 0 0; }
+    .notes-back { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.4); text-decoration: none; }
+    .notes-back:hover { color: rgba(255,255,255,0.7); }
+    .notes-back-icon { width: 16px; height: 16px; }
+
+    @media (max-width: 768px) {
+      .about-main { padding-top: 6rem; padding-bottom: 4rem; }
+      .about-header-new { margin-bottom: 4rem; }
+      .about-section { margin-bottom: 5rem; }
+      .about-header-title { font-size: 1.5rem; }
+      .about-principle-item p:last-child { font-size: 1.05rem; }
+      .about-selected-list { gap: 3rem; }
+      .about-selected-item { padding-top: 3rem; }
+      .about-contact-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .about-qr-grid { grid-template-columns: 1fr 1fr; gap: 20px; justify-self: start; }
+      .about-qr-image { width: 160px; height: 160px; }
+      .about-qr-placeholder { width: 160px; height: 160px; }
+      .about-qr-placeholder svg { width: 16px; height: 16px; }
+    }
+  </style>
+</head>
+<body class="notes-page about-page">
+  <div class="container">
+    <header class="header">
+      <a class="header-logo" href="../index.html" aria-label="Lilllta">
+        <svg width="64" height="24" viewBox="0 0 64 24" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="18" font-family="'Bitcount Prop Single', monospace" font-size="18" font-weight="500" letter-spacing="0.04em" fill="currentColor">Lilllta</text>
+        </svg>
+      </a>
+      <nav class="nav">
+        <a href="../index.html#commercial">商业视觉</a>
+        <a href="../index.html#social">社媒内容</a>
+        <a href="../index.html#ai-tools">AI工具</a>
+        <a href="index.html">关于</a>
+        <a href="index.html#contact">联系</a>
+      </nav>
+      <div class="header-right">
+        <span class="nav-stat" aria-label="GitHub 星标数">25.3K <i></i></span>
+        <a href="https://github.com/LillltaChen" class="nav-github" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.1.79-.25.79-.56v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18.92-.26 1.9-.38 2.88-.39.98 0 1.96.13 2.88.39 2.2-1.49 3.16-1.18 3.16-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.42-2.69 5.38-5.25 5.67.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
+          </svg>
+        </a>
+      </div>
+    </header>
+
+    <main class="about-main">
+
+
+      <!-- 我是谁 -->
+      <header class="about-header-new">
+        <h1 class="about-header-title">你好，我是陈楠<br>专注于 AI Agent 工作流搭建与沉淀</h1>
+        <p class="about-header-sub">AIGC / Agent Skill / 提示词工程 / 视觉设计 / 内容创作者 / 未完待续探索中...</p>
+      </header>
+
+      <!-- 我怎么做 -->
+      <section class="about-section" aria-labelledby="about-principles-title">
+        <h2 class="about-section-title" id="about-principles-title">我怎么做</h2>
+        <p class="about-principles-lead">专注 AI 内容营销创作。方法很简单：</p>
+        <div class="about-principles">
+          <div class="about-principle-item">
+            <span class="about-principle-num">01</span>
+            <p>拆成模块，写成系统，让 AI Agent 自己跑。</p>
+          </div>
+          <div class="about-principle-item">
+            <span class="about-principle-num">02</span>
+            <p>全链路闭环，从品牌研究到多平台交付一站打通。</p>
+          </div>
+          <div class="about-principle-item">
+            <span class="about-principle-num">03</span>
+            <p>能复用，可落地，有结果。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 做过什么 -->
+      <section class="about-section" aria-labelledby="about-works-title">
+        <h2 class="about-section-title" id="about-works-title">做过什么</h2>
+        <div class="about-selected-list">
+
+          <article class="about-selected-item">
+            <p class="about-selected-tag">广告投放</p>
+            <h3>
+              <a href="../ai-projects/01-AI × 广告投放素材生成 Skill/AI Agent 广告投放素材图.html" target="_blank" rel="noopener noreferrer">
+                AI × 广告投放素材生成 Skill
+                <svg class="about-selected-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </a>
+            </h3>
+            <p>品牌名 + 产品图进去，AI 接管全流程——品牌逆向、模板匹配、提示词组装、出图、质检五步走，一个人替代三人团队。30 张多尺寸投放图分钟级产出，单张 ¥0.04，支持 LinkedIn、Facebook、TikTok 多平台分发。</p>
+          </article>
+
+          <article class="about-selected-item">
+            <p class="about-selected-tag">社媒内容</p>
+            <h3>
+              <a href="../ai-projects/09-小红书图文视觉工坊/index.html" target="_blank" rel="noopener noreferrer">
+                AI × 小红书图文视觉工坊 Skill
+                <svg class="about-selected-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </a>
+            </h3>
+            <p>40 套视觉风格 × 10 步工作流，从选题分析到最终出图一站跑通。每条管线都经过真实发布数据验证，确保风格一致、出品稳定。这是目前最完整的一套管线——把小红书图文从"靠感觉做"变成了"按配方做"。</p>
+          </article>
+
+          <article class="about-selected-item">
+            <p class="about-selected-tag">电商视觉</p>
+            <h3>
+              <a href="../ai-projects/02-AI × 电商视觉生产系统/AI × 电商视觉生产系统-优化版.html" target="_blank" rel="noopener noreferrer">
+                AI × 电商视觉生产 Skill
+                <svg class="about-selected-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </a>
+            </h3>
+            <p>传统电商一套多平台素材（主图、详情页、Banner）外包成本 ¥3000 起，周期 5–7 天。我搭了一条 AI 管线：产品图进去 → 自动抠图 → 多平台尺寸适配 → Brand DNA 风格锁定。成本降到 ¥0.6/套，时间压缩到分钟级。这不是"提效"，是换了生产模式。</p>
+          </article>
+
+        </div>
+
+        <div class="about-all-works">
+          <a href="../index.html#work">
+            查看全部 8 个项目
+            <svg class="about-all-works-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      <!-- 创作与反响 -->
+      <section class="about-section" aria-labelledby="about-social-title">
+        <h2 class="about-section-title" id="about-social-title">创作与反响</h2>
+        <article class="about-social-item">
+          <h3>
+            <a href="https://xhslink.com/m/4496sPm6qEh" target="_blank" rel="noopener noreferrer">
+              小红书 @Mr90s
+              <svg class="about-selected-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+              </svg>
+            </a>
+          </h3>
+          <p>我用自主搭建的提示词管线运营一个 AI 复古未来主义数字艺术账号。管线确保每张图的视觉风格一致，我只需要做审美判断。7800+ 粉丝，9 万+赞藏，赞粉比超 11:1。这验证了一件事：<strong>AI 管线 + 人的审美判断，在垂类个人创作者场景是可行的。</strong></p>
+        </article>
+      </section>
+
+      <!-- 联系 -->
+      <section class="about-contact" id="contact" aria-labelledby="about-contact-title">
+        <p class="about-section-title" id="about-contact-title">联系</p>
+        <div class="about-contact-grid">
+          <div class="about-contact-list">
+            <button class="about-contact-item copy-trigger" data-copy="19575219272" type="button">
+              <span class="about-contact-kind">Phone</span>
+              <span class="about-contact-value">195 7521 9272</span>
+              <span class="about-copy-wrap">
+                <span class="copy-hint" aria-hidden="true">复制</span>
+                <svg class="about-contact-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </span>
+            </button>
+            <button class="about-contact-item copy-trigger" data-copy="chenluluaiss@gmail.com" type="button">
+              <span class="about-contact-kind">Email</span>
+              <span class="about-contact-value">chenluluaiss@gmail.com</span>
+              <span class="about-copy-wrap">
+                <span class="copy-hint" aria-hidden="true">复制</span>
+                <svg class="about-contact-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div class="about-qr-grid">
+            <figure class="about-qr">
+              <img class="about-qr-image" decoding="async" src="../ai-projects/wechat.webp" alt="微信二维码" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+              <figcaption class="about-qr-caption">微信</figcaption>
+              <div class="about-qr-placeholder" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3z"></path><path d="M19 19h2"></path><path d="M14 19h2"></path><path d="M19 14h2"></path></svg>
+                <span>微信</span>
+              </div>
+            </figure>
+            <figure class="about-qr">
+              <img class="about-qr-image" decoding="async" src="../assets/小红书.webp" alt="小红书二维码" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+              <figcaption class="about-qr-caption">小红书</figcaption>
+              <div class="about-qr-placeholder" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3z"></path><path d="M19 19h2"></path><path d="M14 19h2"></path><path d="M19 14h2"></path></svg>
+                <span>小红书</span>
+              </div>
+            </figure>
+            <figure class="about-qr">
+              <img class="about-qr-image" decoding="async" src="../assets/公众号.webp" alt="公众号二维码" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+              <figcaption class="about-qr-caption">公众号</figcaption>
+              <div class="about-qr-placeholder" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3z"></path><path d="M19 19h2"></path><path d="M14 19h2"></path><path d="M19 14h2"></path></svg>
+                <span>公众号</span>
+              </div>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <footer class="notes-footer about-footer">
+        <a aria-label="返回首页" class="notes-back" href="../index.html">
+          <svg class="notes-back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
+          </svg>
+          <span>Back to home</span>
+        </a>
+      </footer>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="site-footer-brand">
+        <a class="site-footer-mark" href="../index.html">ChenNan / 2026</a>
+      </div>
+      <p class="site-footer-copyline">vibe coding products by ChenNan</p>
+    </div>
+  </footer>
+
+  <script src="../assets/gsap.min.js"></script>
+  <script src="../assets/lenis.min.js"></script>
+  <script src="../about.js"></script>
+</body>
+</html>
