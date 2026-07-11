@@ -6,8 +6,7 @@
 # macOS
 .DS_Store
 
-# Large media files (videos too large for git)
-ai-projects/**/*.mp4
+# Local video source files
 ai-projects/**/*.webm
 ai-projects/**/*.mov
 ai-projects/**/*.avi
@@ -24,3 +23,4 @@ ai-projects/08-网感训练板/deploy-点开使用/
 optimize_images.sh
 convert_to_webp.py
 add_lazy_loading.py
+.gstack/
