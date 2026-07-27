@@ -24,3 +24,4 @@ optimize_images.sh
 convert_to_webp.py
 add_lazy_loading.py
 .gstack/
+个人网页部署上线提示词.txt

@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ======== GitHub 星标数 ======== */
   (function fetchGitHubStars() {
+		return; // 使用 HTML 中的静态值
     const statEl = document.querySelector(".nav-stat");
     if (!statEl) return;
 
