@@ -13,6 +13,9 @@ ai-projects/**/*.avi
 
 # PNG originals (converted to WebP)
 *.png
+# Cover images actually referenced by index.html (must ship to GitHub Pages)
+!ai-projects/封面2/
+!ai-projects/封面2/*.png
 
 # Embedded git repos (ignore as they're separate repositories)
 ai-projects/**/.git/
