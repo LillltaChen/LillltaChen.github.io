@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fcfcfb">
   <meta name="author" content="陈楠 Chen Nan">
   <meta name="description" content="无实拍商业视频动画全链路工作流：五步出片，1人替代传统拍摄团队，制作成本降低 95%，制作周期从数天压缩至几十分钟。">
-  <title>无实拍视频动画工作流 | 商业视觉旗舰案例 · 陈楠 Chen Nan</title>
+  <title>无实拍视频动画工作流 | 商业视觉精选案例 · 陈楠 Chen Nan</title>
 
   <!-- Google Fonts: Instrument Serif & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,20 +22,17 @@
       --bg-page: #fcfcfb;
       --bg-surface: #ffffff;
       --bg-subtle: #f5f5f3;
-      --bg-muted: #ecece9;
       --bg-pill: rgba(0, 0, 0, 0.04);
       --bg-pill-hover: rgba(0, 0, 0, 0.08);
 
       --text-primary: #101010;
       --text-secondary: rgba(16, 16, 16, 0.68);
       --text-tertiary: rgba(16, 16, 16, 0.44);
-      --text-muted: rgba(16, 16, 16, 0.28);
 
       --border-subtle: rgba(0, 0, 0, 0.07);
       --border-medium: rgba(0, 0, 0, 0.12);
-      --border-strong: rgba(0, 0, 0, 0.85);
 
-      --font-serif: "Instrument Serif", Georgia, "Times New Roman", "Songti SC", serif;
+      --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
       --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", Roboto, sans-serif;
       --font-mono: "SFMono-Regular", Consolas, Menlo, Monaco, monospace;
 
@@ -47,10 +44,13 @@
       --radius-sm: 8px;
       --radius-md: 14px;
       --radius-lg: 20px;
-      --radius-xl: 28px;
+      --radius-xl: 26px;
       --radius-pill: 9999px;
 
-      --max-width: 1140px;
+      /* Vertical Video Native Aspect Ratio: 1280 x 1706 */
+      --video-aspect: 1280 / 1706;
+
+      --max-width: 1180px;
     }
 
     *, *::before, *::after {
@@ -95,7 +95,7 @@
     /* ---------------- Floating Minimal Header (Timeless Pill) ---------------- */
     .site-nav {
       position: fixed;
-      top: 24px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 100;
@@ -108,14 +108,14 @@
       -webkit-backdrop-filter: blur(18px) saturate(180%);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-pill);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       transition: all 0.35s var(--ease-smooth);
     }
 
     .site-nav.is-scrolled {
       background: rgba(252, 252, 251, 0.96);
       border-color: var(--border-medium);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
     }
 
     .nav-back-link {
@@ -178,11 +178,8 @@
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
-    @media (max-width: 820px) {
-      .nav-anchors, .nav-status {
-        display: none;
-      }
-      .nav-divider {
+    @media (max-width: 860px) {
+      .nav-anchors, .nav-status, .nav-divider {
         display: none;
       }
     }
@@ -195,18 +192,25 @@
       padding: 0 28px;
     }
 
-    /* ---------------- Hero Section ---------------- */
+    /* ---------------- Split Hero Section ---------------- */
     .hero-section {
-      padding-top: 140px;
-      padding-bottom: 60px;
+      padding-top: 130px;
+      padding-bottom: 70px;
+    }
+
+    .hero-split-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
     }
 
     .hero-meta-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .pill-badge {
@@ -229,170 +233,173 @@
     }
 
     .hero-meta-text {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-tertiary);
-      letter-spacing: 0.02em;
     }
 
     .hero-title {
       font-family: var(--font-serif);
-      font-size: clamp(40px, 6vw, 68px);
-      line-height: 1.05;
+      font-size: clamp(38px, 5.2vw, 62px);
+      line-height: 1.06;
       font-weight: 400;
       letter-spacing: -0.035em;
       color: var(--text-primary);
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .hero-subtitle {
       font-family: var(--font-serif);
       font-style: italic;
-      font-size: clamp(22px, 3.2vw, 36px);
+      font-size: clamp(20px, 2.8vw, 30px);
       color: var(--text-secondary);
       font-weight: 400;
-      line-height: 1.2;
-      margin-bottom: 28px;
+      line-height: 1.25;
+      margin-bottom: 22px;
     }
 
     .hero-lead {
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1.75;
       color: var(--text-secondary);
-      max-width: 820px;
-      margin-bottom: 40px;
+      margin-bottom: 32px;
     }
 
-    /* Quantitative Stats Strip */
-    .stats-strip {
+    /* 4 Metrics Strip (Compact 2x2 or 4x1) */
+    .hero-metrics-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 24px 32px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-      margin-bottom: 48px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
     }
 
-    .stat-item {
+    .metric-card {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
     }
 
-    .stat-value {
+    .metric-value {
       font-family: var(--font-serif);
-      font-size: clamp(34px, 4vw, 48px);
-      line-height: 1;
+      font-size: 32px;
+      line-height: 1.05;
       color: var(--text-primary);
       font-weight: 400;
       letter-spacing: -0.02em;
     }
 
-    .stat-label {
-      font-size: 13.5px;
-      font-weight: 550;
+    .metric-label {
+      font-size: 13px;
+      font-weight: 600;
       color: var(--text-primary);
     }
 
-    .stat-desc {
-      font-size: 12px;
+    .metric-desc {
+      font-size: 11.5px;
       color: var(--text-tertiary);
     }
 
-    @media (max-width: 768px) {
-      .stats-strip {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        padding: 20px;
-      }
-    }
-
-    /* ---------------- Cinema Player Showcase (Flagship) ---------------- */
-    .cinema-showcase {
-      margin-bottom: 80px;
-    }
-
-    .cinema-card {
+    /* Hero Right: Vertical Video Showcase Card */
+    .hero-vertical-card {
       position: relative;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
       border-radius: var(--radius-xl);
-      overflow: hidden;
       background: #000000;
+      overflow: hidden;
       border: 1px solid rgba(0, 0, 0, 0.08);
       box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.04),
-        0 24px 48px -16px rgba(0, 0, 0, 0.16);
+        0 4px 16px rgba(0, 0, 0, 0.04),
+        0 32px 30px -16px #00000030;
       transition: transform 0.65s var(--spring-bouyant), box-shadow 0.65s var(--spring-bouyant);
       will-change: transform;
     }
 
-    .cinema-card:hover {
-      box-shadow: 0 36px 40px -16px #00000035;
+    .hero-vertical-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 36px 36px -16px #00000038;
     }
 
-    .cinema-video-wrapper {
+    .hero-video-box {
       position: relative;
       width: 100%;
-      aspect-ratio: 16 / 9;
+      aspect-ratio: var(--video-aspect);
       background: #000;
       overflow: hidden;
     }
 
-    .cinema-video-wrapper video {
+    .hero-video-box video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    .cinema-card-footer {
+    .hero-video-meta-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 20px 18px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+      color: #ffffff;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 16px 24px;
-      background: #111111;
-      color: #ffffff;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      align-items: flex-end;
     }
 
-    .cinema-footer-title {
+    .hero-video-title {
       font-size: 14.5px;
-      font-weight: 500;
+      font-weight: 600;
       color: #ffffff;
+      margin-bottom: 2px;
     }
 
-    .cinema-footer-desc {
-      font-size: 12.5px;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .video-control-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: #ffffff;
-      padding: 6px 14px;
-      border-radius: var(--radius-pill);
+    .hero-video-sub {
       font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .sound-toggle-btn {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 11.5px;
+      font-weight: 500;
       cursor: pointer;
       transition: background 0.2s, transform 0.2s;
     }
 
-    .video-control-pill:hover {
-      background: rgba(255, 255, 255, 0.22);
+    .sound-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
       transform: scale(1.04);
     }
 
-    /* ---------------- Section Typography ---------------- */
+    @media (max-width: 960px) {
+      .hero-split-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+      .hero-vertical-card {
+        max-width: 380px;
+      }
+    }
+
+    /* ---------------- Section Header ---------------- */
     .section-wrap {
       padding: 60px 0;
     }
 
     .section-header {
-      margin-bottom: 36px;
+      margin-bottom: 32px;
     }
 
     .section-tag {
@@ -422,21 +429,14 @@
       line-height: 1.7;
     }
 
-    /* ---------------- Showreel 4-Video Grid ---------------- */
-    .videos-grid {
+    /* ---------------- 4-Video Gallery (Native Vertical 1280x1706) ---------------- */
+    .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
     }
 
-    @media (max-width: 768px) {
-      .videos-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-    }
-
-    .video-tile {
+    .gallery-tile {
       background: var(--bg-surface);
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-subtle);
@@ -444,61 +444,93 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
       transition: transform 0.65s var(--spring-bouyant), box-shadow 0.65s var(--spring-bouyant);
       will-change: transform;
+      display: flex;
+      flex-direction: column;
     }
 
-    .video-tile:hover {
-      transform: scale(1.02);
-      box-shadow: 0 32px 30px -16px #00000028;
+    .gallery-tile:hover {
+      transform: scale(1.025);
+      box-shadow: 0 32px 30px -16px #00000030;
     }
 
-    .video-tile-screen {
+    .gallery-screen {
       position: relative;
-      aspect-ratio: 16 / 9;
+      width: 100%;
+      aspect-ratio: var(--video-aspect);
       background: #000000;
       overflow: hidden;
     }
 
-    .video-tile-screen video {
+    .gallery-screen video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    .video-tile-meta {
-      padding: 16px 20px;
+    .gallery-play-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+    }
+
+    .gallery-info {
+      padding: 16px 16px 18px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+      flex: 1;
     }
 
-    .video-tile-header {
+    .gallery-title-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: baseline;
+      gap: 8px;
     }
 
-    .video-tile-title {
-      font-size: 16px;
+    .gallery-title {
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
       letter-spacing: -0.01em;
     }
 
-    .video-tile-badge {
+    .gallery-tag {
       font-size: 11px;
       font-weight: 500;
-      padding: 3px 8px;
-      border-radius: var(--radius-pill);
-      background: var(--bg-pill);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-subtle);
+      color: var(--text-tertiary);
+      white-space: nowrap;
     }
 
-    .video-tile-desc {
-      font-size: 13.5px;
+    .gallery-desc {
+      font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 1024px) {
+      .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+    }
+    @media (max-width: 580px) {
+      .gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
     }
 
     /* ---------------- The 5-Step Pipeline ---------------- */
@@ -514,7 +546,7 @@
       border-radius: var(--radius-lg);
       padding: 24px 28px;
       display: grid;
-      grid-template-columns: 80px 1fr 1fr;
+      grid-template-columns: 70px 1.2fr 1fr;
       align-items: center;
       gap: 24px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.015);
@@ -529,14 +561,14 @@
 
     .pipeline-num {
       font-family: var(--font-serif);
-      font-size: 40px;
+      font-size: 38px;
       line-height: 1;
       color: var(--text-primary);
       font-style: italic;
     }
 
     .pipeline-main-title {
-      font-size: 17px;
+      font-size: 16.5px;
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 4px;
@@ -544,7 +576,7 @@
     }
 
     .pipeline-main-desc {
-      font-size: 14px;
+      font-size: 13.5px;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -600,7 +632,7 @@
     }
 
     .comparison-table th {
-      padding: 18px 24px;
+      padding: 16px 22px;
       background: var(--bg-subtle);
       font-weight: 600;
       color: var(--text-primary);
@@ -608,7 +640,7 @@
     }
 
     .comparison-table td {
-      padding: 18px 24px;
+      padding: 16px 22px;
       border-bottom: 1px solid var(--border-subtle);
       color: var(--text-secondary);
       vertical-align: middle;
@@ -646,7 +678,7 @@
         overflow-x: auto;
       }
       .comparison-table th, .comparison-table td {
-        padding: 12px 16px;
+        padding: 12px 14px;
       }
     }
 
@@ -689,8 +721,8 @@
     }
 
     .tool-tile img {
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       object-fit: contain;
       border-radius: 12px;
       background: var(--bg-subtle);
@@ -713,25 +745,24 @@
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-xl);
-      padding: 48px;
+      padding: 44px 36px;
       text-align: center;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.025);
       margin: 40px 0;
-      position: relative;
     }
 
     .quote-text {
       font-family: var(--font-serif);
-      font-size: clamp(22px, 3vw, 32px);
-      line-height: 1.4;
+      font-size: clamp(20px, 2.6vw, 30px);
+      line-height: 1.45;
       color: var(--text-primary);
       font-style: italic;
       max-width: 860px;
-      margin: 0 auto 20px;
+      margin: 0 auto 16px;
     }
 
     .quote-author {
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -741,8 +772,8 @@
     /* ---------------- Next Project Navigation Footer ---------------- */
     .project-nav-footer {
       border-top: 1px solid var(--border-subtle);
-      padding: 60px 0 80px;
-      margin-top: 60px;
+      padding: 50px 0 70px;
+      margin-top: 40px;
     }
 
     .project-nav-row {
@@ -750,14 +781,14 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 24px;
+      gap: 20px;
     }
 
     .next-project-link {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 20px 28px;
+      padding: 18px 26px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
@@ -772,7 +803,7 @@
     }
 
     .next-project-label {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 500;
       color: var(--text-tertiary);
       text-transform: uppercase;
@@ -780,7 +811,7 @@
     }
 
     .next-project-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 600;
       color: var(--text-primary);
     }
@@ -799,8 +830,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 48px;
-      padding-top: 24px;
+      margin-top: 40px;
+      padding-top: 20px;
       border-top: 1px solid var(--border-subtle);
       font-size: 12.5px;
       color: var(--text-tertiary);
@@ -813,7 +844,7 @@
       }
       .site-footer-bottom {
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         text-align: center;
       }
     }
@@ -846,145 +877,153 @@
   <!-- Main Container -->
   <main class="container">
 
-    <!-- 01. Hero Section -->
+    <!-- 01. Split Hero Section -->
     <section class="hero-section" id="overview">
-      <div class="hero-meta-row">
-        <span class="pill-badge pill-badge-accent">动态影像旗舰 · 案例 01</span>
-        <span class="pill-badge">无需进棚 · 全 AI 驱动</span>
-        <span class="pill-badge">单人跑完全链路</span>
-        <span class="hero-meta-text">2026 Production · Pipeline Architecture</span>
-      </div>
-
-      <h1 class="hero-title">无实拍视频动画工作流</h1>
-      <p class="hero-subtitle">Cinematic Commercials Without a Camera</p>
-
-      <p class="hero-lead">
-        传统商业视频需要租借影棚、雇佣摄影灯光团队、历经繁琐后期，改一版就意味着全盘推倒重来。我搭建的这套 <strong>5 步标准化 AI 全链路视频管线</strong>，从产品卖点拆解、分镜语言生成到高精渲染成片，每个环节均由 AI 驱动。实现了<strong>成本降低 95%、出片效率提升 10 倍</strong>的商业落地颠覆。
-      </p>
-
-      <!-- 4 Golden Metrics Strip -->
-      <div class="stats-strip">
-        <div class="stat-item">
-          <span class="stat-value">95%</span>
-          <span class="stat-label">综合成本降低</span>
-          <span class="stat-desc">无需搭棚 · 无需外拍制片团队</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">10x</span>
-          <span class="stat-label">出片效率倍增</span>
-          <span class="stat-desc">制作周期从数天压缩至分钟级</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">1人</span>
-          <span class="stat-label">全链路单兵闭环</span>
-          <span class="stat-desc">把整个制作团队重构为一人管线</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">0实拍</span>
-          <span class="stat-label">纯数字资产生成</span>
-          <span class="stat-desc">多机位运镜与光影物理真实渲染</span>
-        </div>
-      </div>
-
-      <!-- Cinema Showcase Card (Flagship Video Player) -->
-      <div class="cinema-showcase">
-        <div class="cinema-card">
-          <div class="cinema-video-wrapper">
-            <video id="cinemaVideo" autoplay loop muted playsinline poster="../封面2/视频动画工作流.webp">
-              <source src="4防晒.mp4" type="video/mp4">
-            </video>
+      <div class="hero-split-grid">
+        <!-- Hero Left: Narrative & Key Metrics -->
+        <div>
+          <div class="hero-meta-row">
+            <span class="pill-badge pill-badge-accent">精选案例 · 01 动态影像</span>
+            <span class="pill-badge">无需进棚 · 全 AI 驱动</span>
+            <span class="hero-meta-text">2026 Production · Pipeline Architecture</span>
           </div>
-          <div class="cinema-card-footer">
-            <div>
-              <div class="cinema-footer-title">旗舰成片预览：防晒护肤高光流体微距</div>
-              <div class="cinema-footer-desc">全流程 AI 渲染 · 水润质地微距特写与光影穿透运镜</div>
+
+          <h1 class="hero-title">无实拍视频动画工作流</h1>
+          <p class="hero-subtitle">Cinematic Commercials Without a Camera</p>
+
+          <p class="hero-lead">
+            传统商业视频制作需要租借专业影棚、调遣摄影灯光团队、历经高昂的道具后期开销，改一版就意味着全盘推倒重来。我搭建的这套 <strong>5 步标准化 AI 全链路视频管线</strong>，从产品卖点拆解、分镜语言生成到高精渲染成片，每个环节均由 AI 驱动。实现了<strong>成本直降 95%、制作周期从数天压缩至几十分钟</strong>的商业颠覆。
+          </p>
+
+          <!-- 4 Golden Metrics in 2x2 Grid -->
+          <div class="hero-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-value">95%</span>
+              <span class="metric-label">综合成本降低</span>
+              <span class="metric-desc">无需搭棚 · 无需外拍制片团队</span>
             </div>
-            <button class="video-control-pill" id="soundToggleBtn" aria-label="切换静音">
-              <span id="soundIcon">🔇 静音中</span>
-            </button>
+            <div class="metric-card">
+              <span class="metric-value">10x</span>
+              <span class="metric-label">出片效率倍增</span>
+              <span class="metric-desc">制作周期从数天压缩至分钟级</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-value">1人</span>
+              <span class="metric-label">全链路单兵闭环</span>
+              <span class="metric-desc">把整个制作团队重构为一人管线</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-value">0实拍</span>
+              <span class="metric-label">纯数字资产生成</span>
+              <span class="metric-desc">多机位运镜与光影物理真实渲染</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Right: Featured Vertical Commercial Card (Native 1280x1706) -->
+        <div>
+          <div class="hero-vertical-card">
+            <div class="hero-video-box">
+              <video id="heroVideo" autoplay loop muted playsinline>
+                <source src="4防晒.mp4" type="video/mp4">
+              </video>
+              <div class="hero-video-meta-overlay">
+                <div>
+                  <div class="hero-video-title">美妆个护 · 水感防晒乳</div>
+                  <div class="hero-video-sub">1280 × 1706 竖屏商业成片实录</div>
+                </div>
+                <button class="sound-toggle-btn" id="soundToggleBtn" aria-label="切换声音">
+                  <span id="soundIcon">🔇 静音中</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 02. Multi-Category Commercial Showreel -->
+    <!-- 02. Four-Category Commercial Showreel Gallery (Native 1280x1706) -->
     <section class="section-wrap" id="showreel">
       <div class="section-header">
         <span class="section-tag">Case Gallery · 商业成片展映</span>
         <h2 class="section-heading">Four Industry Categories</h2>
         <p class="section-desc">
-          基于该工作流跨品类落地验证：从 3C 数码金属硬材质、高端滋补食品流体，到智能硬件交互与美妆微距，全部实现高完成度商用出片。
+          基于该工作流跨品类落地验证：所有成片均为 1280 × 1706 竖屏规格（适配社媒投放、移动广告与电商全屏沉浸展示），100% 完整无死角呈现。
         </p>
       </div>
 
-      <div class="videos-grid">
-        <!-- 视频 1: 耳机产品视频 -->
-        <article class="video-tile">
-          <div class="video-tile-screen">
-            <video controls loop muted playsinline preload="metadata">
+      <div class="gallery-grid">
+        <!-- 视频 1: 3C 数码 · 旗舰耳机 -->
+        <article class="gallery-tile">
+          <div class="gallery-screen">
+            <span class="gallery-play-badge">自动循环</span>
+            <video autoplay loop muted playsinline preload="metadata">
               <source src="1耳机.mp4" type="video/mp4">
             </video>
           </div>
-          <div class="video-tile-meta">
-            <div class="video-tile-header">
-              <h3 class="video-tile-title">01 / 3C 数码 · 旗舰耳机</h3>
-              <span class="video-tile-badge">金属光影 · 工业级质感</span>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">01 / 3C 数码 · 旗舰耳机</h3>
+              <span class="gallery-tag">1280×1706</span>
             </div>
-            <p class="video-tile-desc">
-              拉丝金属反射、悬浮动态视角与精密结构展现，完全摆脱传统 3D 渲染繁复建模与材质烘焙。
+            <p class="gallery-desc">
+              拉丝金属反射、悬浮动态视角与精密结构拆解，完全摆脱传统 3D 繁复建模与材质烘焙。
             </p>
           </div>
         </article>
 
-        <!-- 视频 2: 即食花胶产品视频 -->
-        <article class="video-tile">
-          <div class="video-tile-screen">
-            <video controls loop muted playsinline preload="metadata">
+        <!-- 视频 2: 高端滋补 · 即食花胶 -->
+        <article class="gallery-tile">
+          <div class="gallery-screen">
+            <span class="gallery-play-badge">自动循环</span>
+            <video autoplay loop muted playsinline preload="metadata">
               <source src="2即食花胶.mp4" type="video/mp4">
             </video>
           </div>
-          <div class="video-tile-meta">
-            <div class="video-tile-header">
-              <h3 class="video-tile-title">02 / 高端滋补 · 即食花胶</h3>
-              <span class="video-tile-badge">食品流体 · 食欲感拉满</span>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">02 / 高端滋补 · 即食花胶</h3>
+              <span class="gallery-tag">1280×1706</span>
             </div>
-            <p class="video-tile-desc">
-              浓郁金黄汤汁微距慢动作流体模拟、通透肉质光泽，突破实拍中食品极易氧化脱水难控制的痛点。
+            <p class="gallery-desc">
+              浓郁金黄汤汁微距慢动作流体模拟、通透肉质光泽，解决传统食品实拍极易氧化失真的痛点。
             </p>
           </div>
         </article>
 
-        <!-- 视频 3: 智能宠物喂食器视频 -->
-        <article class="video-tile">
-          <div class="video-tile-screen">
-            <video controls loop muted playsinline preload="metadata">
+        <!-- 视频 3: 智能硬件 · 宠物喂食器 -->
+        <article class="gallery-tile">
+          <div class="gallery-screen">
+            <span class="gallery-play-badge">自动循环</span>
+            <video autoplay loop muted playsinline preload="metadata">
               <source src="3智能宠物喂食.mp4" type="video/mp4">
             </video>
           </div>
-          <div class="video-tile-meta">
-            <div class="video-tile-header">
-              <h3 class="video-tile-title">03 / 智能硬件 · 宠物喂食器</h3>
-              <span class="video-tile-badge">家居场景 · 交互逻辑</span>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">03 / 智能硬件 · 宠物喂食器</h3>
+              <span class="gallery-tag">1280×1706</span>
             </div>
-            <p class="video-tile-desc">
-              真实还原现代温馨家居空间，多机位动态跟踪出粮与使用交互，无需繁琐置景即呈现品牌高级调性。
+            <p class="gallery-desc">
+              真实还原现代温馨家居空间，多机位动态跟踪出粮与功能交互，无需繁琐置景即具大牌感。
             </p>
           </div>
         </article>
 
-        <!-- 视频 4: 防晒护肤产品视频 -->
-        <article class="video-tile">
-          <div class="video-tile-screen">
-            <video controls loop muted playsinline preload="metadata">
+        <!-- 视频 4: 美妆个护 · 水感防晒乳 -->
+        <article class="gallery-tile">
+          <div class="gallery-screen">
+            <span class="gallery-play-badge">自动循环</span>
+            <video autoplay loop muted playsinline preload="metadata">
               <source src="4防晒.mp4" type="video/mp4">
             </video>
           </div>
-          <div class="video-tile-meta">
-            <div class="video-tile-header">
-              <h3 class="video-tile-title">04 / 美妆个护 · 水感防晒乳</h3>
-              <span class="video-tile-badge">柔润质地 · 粒子光效</span>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">04 / 美妆个护 · 水感防晒乳</h3>
+              <span class="gallery-tag">1280×1706</span>
             </div>
-            <p class="video-tile-desc">
+            <p class="gallery-desc">
               乳液水润延展、阳光透射光斑与高速水珠飞溅慢动作，直达国际一线美妆广告视觉标准。
             </p>
           </div>
@@ -1214,21 +1253,29 @@
       }
     });
 
-    // Sound toggle on flagship cinema player
-    const cinemaVideo = document.getElementById('cinemaVideo');
+    // Sound toggle on hero featured vertical player
+    const heroVideo = document.getElementById('heroVideo');
     const soundToggleBtn = document.getElementById('soundToggleBtn');
     const soundIcon = document.getElementById('soundIcon');
 
-    if (cinemaVideo && soundToggleBtn) {
+    if (heroVideo && soundToggleBtn) {
       soundToggleBtn.addEventListener('click', () => {
-        cinemaVideo.muted = !cinemaVideo.muted;
-        if (cinemaVideo.muted) {
+        heroVideo.muted = !heroVideo.muted;
+        if (heroVideo.muted) {
           soundIcon.textContent = '🔇 静音中';
         } else {
           soundIcon.textContent = '🔊 声音已开启';
         }
       });
     }
+
+    // Interactive Hover on Gallery Videos
+    const galleryVideos = document.querySelectorAll('.gallery-screen video');
+    galleryVideos.forEach(v => {
+      v.parentElement.addEventListener('mouseenter', () => {
+        v.play().catch(() => {});
+      });
+    });
   </script>
 </body>
 </html>
