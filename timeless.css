@@ -694,7 +694,7 @@ img, video {
 
 .card-media-box {
   position: relative;
-  aspect-ratio: 680 / 460;
+  aspect-ratio: 1024 / 780;
   width: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;
