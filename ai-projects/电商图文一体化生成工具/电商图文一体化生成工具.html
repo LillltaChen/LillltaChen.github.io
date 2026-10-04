@@ -3,452 +3,358 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000">
-  <meta name="author" content="陈楠 Chennan">
-  <meta name="description" content="织图 — AI 原生商品图文工作台，上传商品图自动生成电商详情页，支持私有化部署">
+  <meta name="theme-color" content="#fcfcfb">
+  <meta name="author" content="陈楠">
+  <meta name="description" content="织图 — AI 原生商品图文工作台，上传商品图自动生成电商详情页，支持私有化部署。">
   <title>织图 — AI 原生商品图文工作台 | 陈楠</title>
 
-  <!-- 依赖 -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
-
-  <!-- Tailwind 配置 -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
-          },
-          colors: {
-            ds: {
-              bg: '#000000', text: '#ffffff', muted: 'rgba(255,255,255,0.55)', sub: 'rgba(255,255,255,0.32)',
-              border: 'rgba(255,255,255,0.08)', borderLight: 'rgba(255,255,255,0.12)',
-              surface: 'rgba(255,255,255,0.03)', surfaceHover: 'rgba(255,255,255,0.06)',
-            }
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- 核心样式 -->
-  <style>
-    body { font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; background-color: #000; color: #fff; -webkit-font-smoothing: antialiased; }
-    code, .font-mono { font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace; }
-    ::selection { background: #ff9ac8; color: #000; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-    .header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; background-color: transparent; backdrop-filter: blur(0px); border-bottom: 1px solid transparent; transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s; }
-    .header.is-scrolled { padding-top: 1rem; padding-bottom: 1rem; background-color: rgba(0,0,0,0.55); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom-color: rgba(255,255,255,0.06); }
-    .header-logo { flex: 1; color: rgba(255,255,255,0.55); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
-    .header-logo:hover { color: #fff; }
-    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
-    .header-social { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s; }
-    .header-social:hover { color: #fff; }
-    @media (max-width: 768px) { .header { padding: 1rem 1.5rem; } .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; } }
-
-    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none; background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%); }
-    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(120px); will-change: transform; }
-    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%; background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%); animation: blobFloat1 20s ease-in-out infinite; }
-    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%; background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%); animation: blobFloat2 24s ease-in-out infinite; }
-    @keyframes blobFloat1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-50px,80px) scale(1.1); } 66% { transform: translate(40px,-40px) scale(0.95); } }
-    @keyframes blobFloat2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,-50px) scale(1.15); } 66% { transform: translate(-30px,40px) scale(0.9); } }
-    .bg-video { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.55; pointer-events: none; }
-    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none; background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%); }
-
-    .card-glow { position: relative; overflow: hidden; background: rgba(255,255,255,0.08); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid rgba(255,255,255,0.08) !important; transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1), box-shadow 0.6s cubic-bezier(0.22,1,0.36,1), background-color 0.6s cubic-bezier(0.22,1,0.36,1); }
-    .card-glow::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0; background: radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent), radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%); transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1); pointer-events: none; }
-    .card-glow:hover::before { opacity: 1; }
-    .card-glow:hover { border-color: rgba(226,242,31,0.55); background-color: rgba(255,255,255,0.14); box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06); }
-    .card-glow > * { position: relative; z-index: 1; }
-
-    section h2 { position: relative; padding-left: 0.85rem; }
-    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em; width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7; }
-
-    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); transition: all 0.3s; }
-    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
-    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
-    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
-
-    .scroll-reveal { opacity: 0; transform: translateY(30px); }
-
-    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: zoom-in; }
-    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-
-    .img-lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; cursor: zoom-out; opacity: 0; transition: opacity 0.3s ease; }
-    .img-lightbox.active { opacity: 1; }
-    .img-lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
-    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0; }
-    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
-    .lightbox-prev { left: 16px; } .lightbox-next { right: 16px; }
-    @media (min-width: 768px) { .lightbox-prev { left: 32px; } .lightbox-next { right: 32px; } }
-    .lightbox-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em; }
-
-    .content-card { padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
-    .tool-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border-radius: 14px; transition: background 0.3s; }
-  </style>
-  <!-- Web Fonts & Timeless Design System -->
+  <!-- Web Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Timeless Design System -->
   <link rel="stylesheet" href="../../project-timeless.css">
 </head>
-<body class="bg-ds-bg text-ds-text antialiased">
+<body>
 
-  <!-- ============================================================ -->
-  <!-- ===================== 配置区域：只改这里 ===================== -->
-  <!-- ============================================================ -->
-  <script>
-    const CONFIG = {
-      // ---------- 导航栏（最多 2 项） ----------
-      nav: {
-        logoText: '返回首页',
-        logoLink: '../../index.html#work',
-        links: [
-          { text: '使用实例', href: '#section-gallery' },
-          { text: '量化成果', href: '#section-stats' }
-        ]
-      },
-
-      // ---------- Hero 区域 ----------
-      hero: {
-        meta: '2026 · 独立设计 & 开发',
-        tag: '双端 · 私有化部署',
-        title: {
-          line1: '一键生成电商头图和详情页',
-          prefix: '把素材成本从',
-          highlight: '¥3000+ 降到 ¥5'
-        },
-        description: '织图 —— 商品图文一体化生成工具<br>自动完成商品分析、页面设计与视觉生成，大幅提升详情页制作效率。',
-        labels: ['电商详情页', '批量生产', '图片编辑', '私有化部署']
-      },
-
-      // ---------- 痛点 ----------
-      painPoints: {
-        id: 'section-pain-points',
-        title: '解决什么问题',
-        description: '电商内容生产中最常见的四个卡点，织图逐个对症。',
-        items: [
-          { title: '排期慢', desc: '一套详情页从拍摄到上架排 3–5 天，织图上传商品图分钟级出稿。' },
-          { title: '改稿烦', desc: '详情页来回改 5–6 轮，四步管线每步可干预、可编辑，不用推翻重来。' },
-          { title: 'SKU 多', desc: '几十个 SKU 逐个做图耗时巨大，批量创建 + 后台异步任务，启动后不用盯屏。' },
-          { title: '数据怕漏', desc: 'API Key 仅存浏览器 localStorage，不落服务端数据库，支持私有网关统一管理。' }
-        ]
-      },
-
-      // ---------- 方法流程 ----------
-      process: {
-        id: 'section-process',
-        title: '方法架构：四步图文生产管线',
-        description: '每一步都可干预、可编辑，不是黑盒生成。',
-        steps: [
-          { number: '01', title: '内容规划', desc: '上传商品图，AI 自动分析卖点、视觉风格与页面结构，生成结构化内容规划方案。' },
-          { number: '02', title: 'Prompt 审核', desc: 'Visual Prompt Agent 在每次生成前审核并优化提示词，确保图文质量和风格一致性。' },
-          { number: '03', title: '图片生成', desc: '调用 gpt-image-2 生成商品图文，支持多语言转换，被动模型发现避免浪费额度。' },
-          { number: '04', title: '在线编辑', desc: '生成后可在浏览器内微调图片，不满意可重新生成，直到效果满意为止。' }
-        ]
-      },
-
-      // ---------- 使用实例 ----------
-      gallery: {
-        id: 'section-gallery',
-        title: '使用实例',
-        description: '织图核心界面实拍：从项目创建到详情页生成、图片编辑、导出成品，全流程截图。',
-        items: [
-          { title: '上传图片', src: './1.webp', alt: '上传图片' },
-          { title: '批量出图', src: './2.webp', alt: '批量出图' },
-          { title: '图片编辑', src: './3.webp', alt: '图片编辑' },
-          { title: '导出成品', src: './4.webp', alt: '导出成品' }
-        ]
-      },
-
-      // ---------- 量化成果（放在实证之后） ----------
-      stats: {
-        id: 'section-stats',
-        title: '量化成果',
-        description: '传统电商视觉一套素材 ¥3000+，设计师排期 3 天。织图把全流程压缩到 90 分钟，边际成本 ¥5/套。',
-        items: [
-          { value: '5', suffix: '元/套', label: '边际成本', desc: '¥3000+ → ¥5，试错不再心疼' },
-          { value: '200', suffix: '倍',  label: '效率提升', desc: '3天 → 90分钟，排期不再瓶颈' },
-          { value: '5',  suffix: '大',  label: '场景覆盖', desc: '电商图文全场景覆盖' }
-        ]
-      },
-
-      // ---------- 金句 ----------
-      quote: {
-        text: '织图是你的 AI 超级设计助理——上传商品图，自动出头图和详情页，你负责拍板。',
-        source: '织图 产品定位'
-      }
-    };
-  </script>
-
-
-  <!-- ============================================================ -->
-  <!-- ===================== 页面结构（按固定叙事顺序） ============= -->
-  <!-- ============================================================ -->
-
-  <!-- 全局视觉层 -->
-  <video class="bg-video" autoplay muted loop playsinline poster="">
-    <source src="../../pixel-blast-bg.webm" type="video/webm">
-  </video>
-  <div class="vignette"></div>
-  <div class="glow-blob glow-blob-1"></div>
-  <div class="glow-blob glow-blob-2"></div>
-  <div class="spotlight-layer"></div>
-
-  <!-- 导航栏 -->
-  <header class="header" id="header">
-    <a href="#" class="header-logo" id="nav-logo" aria-label="返回首页">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+  <!-- Floating Minimal Back Button (Smart Auto-Hide) -->
+  <aside class="floating-back-wrap">
+    <a href="../../index.html#work" class="floating-back-btn" aria-label="返回作品集首页">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
-      <span id="nav-logo-text">返回首页</span>
+      <span>返回作品集</span>
     </a>
-    <div class="header-right" id="nav-links"></div>
-  </header>
+  </aside>
 
-  <!-- Hero -->
-  <header class="pt-48 pb-20 px-8 sm:px-12">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-6 flex flex-wrap items-center gap-3">
-        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]" id="hero-meta"></span>
-        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);" id="hero-tag"></span>
-      </div>
-      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white" id="hero-title"></h1>
-      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl" id="hero-desc"></p>
-      <div class="mt-10 flex flex-wrap gap-3" id="hero-labels"></div>
-    </div>
-  </header>
+  <!-- Main Container -->
+  <main class="container">
 
-  <!-- 1. 痛点 -->
-  <section class="py-20 px-8 sm:px-12" id="section-pain-points">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-10 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="pain-points-title"></h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="pain-points-desc"></p>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 scroll-reveal" id="pain-points-grid"></div>
-    </div>
-  </section>
-
-  <!-- 2. 使用实例 -->
-  <section class="py-20 px-8 sm:px-12" id="section-gallery">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-10 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="gallery-title"></h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="gallery-desc"></p>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 scroll-reveal" id="gallery-grid"></div>
-    </div>
-  </section>
-
-  <!-- 3. 量化成果 -->
-  <section class="py-20 px-8 sm:px-12" id="section-stats">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-12 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="stats-title"></h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl" id="stats-desc"></p>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 scroll-reveal" id="stats-grid"></div>
-    </div>
-  </section>
-
-  <!-- 4. 方法架构 -->
-  <section class="py-20 px-8 sm:px-12" id="section-process">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-10 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4" id="process-title"></h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl" id="process-desc"></p>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 scroll-reveal" id="process-grid"></div>
-    </div>
-  </section>
-
-  <!-- 5. 总结 -->
-  <section class="py-16 px-8 sm:px-12">
-    <div class="max-w-5xl mx-auto">
-      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto" id="quote-text"></p>
-        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase" id="quote-source"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
-    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
-      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20" id="built-with"></div>
-      <p>Design & Development by ChenNan</p>
-    </div>
-  </footer>
-
-
-  <!-- ============================================================ -->
-  <!-- ===================== 渲染引擎（不用改） ===================== -->
-  <!-- ============================================================ -->
-  <script>
-    // ---------- 导航 ----------
-    document.getElementById('nav-logo').href = CONFIG.nav.logoLink;
-    document.getElementById('nav-logo-text').textContent = CONFIG.nav.logoText;
-    const navLinksEl = document.getElementById('nav-links');
-    CONFIG.nav.links.forEach(link => {
-      const a = document.createElement('a');
-      a.href = link.href;
-      a.className = 'header-social';
-      a.innerHTML = `<span>${link.text}</span>`;
-      navLinksEl.appendChild(a);
-    });
-
-    // ---------- Hero ----------
-    document.getElementById('hero-meta').textContent = CONFIG.hero.meta;
-    document.getElementById('hero-tag').textContent = CONFIG.hero.tag;
-    document.getElementById('hero-title').innerHTML =
-      `${CONFIG.hero.title.line1}<br><span class="text-white/75">${CONFIG.hero.title.prefix}</span> <span style="color:#e2f21f;">${CONFIG.hero.title.highlight}</span>`;
-    document.getElementById('hero-desc').innerHTML = CONFIG.hero.description;
-    const heroLabelsEl = document.getElementById('hero-labels');
-    CONFIG.hero.labels.forEach(label => {
-      const span = document.createElement('span');
-      span.className = 'card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50';
-      span.innerHTML = `<span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>${label}`;
-      heroLabelsEl.appendChild(span);
-    });
-
-    // ---------- Pain Points ----------
-    document.getElementById('pain-points-title').textContent = CONFIG.painPoints.title;
-    document.getElementById('pain-points-desc').textContent = CONFIG.painPoints.description;
-    const painPointsGrid = document.getElementById('pain-points-grid');
-    CONFIG.painPoints.items.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'content-card';
-      div.innerHTML = `
-        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${item.title}</h4>
-        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${item.desc}</p>
-      `;
-      painPointsGrid.appendChild(div);
-    });
-
-    // ---------- Process ----------
-    document.getElementById('process-title').textContent = CONFIG.process.title;
-    document.getElementById('process-desc').textContent = CONFIG.process.description;
-    const processGrid = document.getElementById('process-grid');
-    CONFIG.process.steps.forEach(step => {
-      const div = document.createElement('div');
-      div.className = 'content-card';
-      div.innerHTML = `
-        <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP ${step.number}</div>
-        <h4 class="text-[0.95rem] font-semibold text-white mb-2">${step.title}</h4>
-        <p class="text-[0.8rem] text-white/50 leading-[1.7]">${step.desc}</p>
-      `;
-      processGrid.appendChild(div);
-    });
-
-    // ---------- Gallery ----------
-    document.getElementById('gallery-title').textContent = CONFIG.gallery.title;
-    document.getElementById('gallery-desc').textContent = CONFIG.gallery.description;
-    const galleryGrid = document.getElementById('gallery-grid');
-    CONFIG.gallery.items.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'text-center';
-      div.innerHTML = `
-        <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider mb-2">${item.title}</div>
-        <img loading="lazy" src="${item.src}" alt="${item.alt}" class="case-img">
-      `;
-      galleryGrid.appendChild(div);
-    });
-
-    // ---------- Stats ----------
-    document.getElementById('stats-title').textContent = CONFIG.stats.title;
-    document.getElementById('stats-desc').textContent = CONFIG.stats.description;
-    const statsGrid = document.getElementById('stats-grid');
-    CONFIG.stats.items.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'stat-card';
-      div.innerHTML = `
-        <div class="stat-value"><span class="stat-number">${item.value}</span>${item.suffix}</div>
-        <div class="stat-label">
-          <span style="color:#e2f21f;font-weight:500;">${item.label}</span><br>
-          ${item.desc}
+    <!-- 01. Hero Section -->
+    <section class="hero-section" id="overview">
+      <div class="hero-content-wrap">
+        <div class="hero-meta-row">
+          <span class="pill-badge pill-badge-accent">精选案例 · 02 电商图文</span>
+          <span class="pill-badge">双端 · 私有化部署</span>
+          <span class="pill-badge">独立设计与全栈研发</span>
+          <span class="hero-meta-text">2026 Production · Fullstack Architecture</span>
         </div>
-      `;
-      statsGrid.appendChild(div);
-    });
 
-    // ---------- Quote ----------
-    document.getElementById('quote-text').textContent = CONFIG.quote.text;
-    document.getElementById('quote-source').textContent = CONFIG.quote.source;
+        <h1 class="hero-title">织图 — AI 原生商品图文工作台</h1>
+        <p class="hero-subtitle">Automated E-Commerce Graphics &amp; Detail Pages</p>
 
-    // ---------- Built with ----------
-    document.getElementById('built-with').innerHTML =
-      '<span>Built with Next.js</span><span>·</span><span>Electron</span><span>·</span><span>Prisma + SQLite</span><span>·</span><span>OpenAI Compatible API</span><span>·</span><span>Claude Code</span>';
-  </script>
+        <p class="hero-lead">
+          将素材制作成本从 <strong>¥3000+ 降至 ¥5/套</strong>。上传商品底图，AI 自动完成商品多维度卖点提炼、视觉风格匹配与页面设计排版。把长达 3–5 天的手工作坊排期，压缩为 90 分钟端到端闭环出稿。
+        </p>
 
+        <div class="hero-labels-row">
+          <span class="hero-label-pill">电商详情页生成</span>
+          <span class="hero-label-pill">SKU 异步批量并发</span>
+          <span class="hero-label-pill">画布在线无损微调</span>
+          <span class="hero-label-pill">纯本地凭证 · 零数据泄露</span>
+        </div>
+      </div>
 
-  <!-- ============================================================ -->
-  <!-- ===================== 交互逻辑（不用改） ===================== -->
-  <!-- ============================================================ -->
-  <script>
-    window.addEventListener('scroll', () => {
-      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
-    });
-    document.addEventListener('mousemove', (e) => {
-      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
-      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
-    });
-    document.querySelectorAll('.card-glow').forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
-        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
-      });
-    });
+      <!-- 4 Golden Metrics Strip -->
+      <div class="hero-metrics-strip">
+        <div class="metric-card">
+          <div class="metric-val">¥5<span class="metric-val-unit">/套</span></div>
+          <div class="metric-label">边际制作成本</div>
+          <div class="metric-desc">¥3000+ → ¥5 · 极大降低试错成本</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">200<span class="metric-val-unit">倍</span></div>
+          <div class="metric-label">生产效率提升</div>
+          <div class="metric-desc">3–5 天工期 → 90 分钟出全套</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">5<span class="metric-val-unit">大</span></div>
+          <div class="metric-label">核心场景覆盖</div>
+          <div class="metric-desc">主图 / 详情页 / 卖点卡 / 海报 / 批量切图</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">100<span class="metric-val-unit">%</span></div>
+          <div class="metric-label">数据本地安全</div>
+          <div class="metric-desc">API Key 仅存本地 · 支持企业私有网关</div>
+        </div>
+      </div>
+    </section>
 
-    gsap.registerPlugin(ScrollTrigger);
-    gsap.utils.toArray('.scroll-reveal').forEach(el => {
-      gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
-        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
-      });
-    });
-    gsap.utils.toArray('.stat-number').forEach(el => {
-      gsap.from(el, { textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
-        scrollTrigger: { trigger: el, start: 'top 85%' }
-      });
-    });
+    <!-- 02. Pain Points Section -->
+    <section class="section-wrap" id="pain-points">
+      <div class="section-header">
+        <span class="section-tag">Challenges · 痛点诊断</span>
+        <h2 class="section-heading">传统电商视觉生产的四大卡点</h2>
+        <p class="section-desc">
+          多品类、高频次上新让传统设计排期不堪重负，织图从架构层面逐个击破。
+        </p>
+      </div>
 
-    // 图片灯箱（← → 键盘 + 计数器）
-    const caseImgs = Array.from(document.querySelectorAll('.case-img'));
-    caseImgs.forEach((img, idx) => { img.addEventListener('click', () => openLightbox(idx)); });
-    function openLightbox(startIdx) {
-      let currentIdx = startIdx;
-      const overlay = document.createElement('div'); overlay.className = 'img-lightbox';
-      const imgEl = document.createElement('img'); imgEl.src = caseImgs[currentIdx].src; imgEl.alt = caseImgs[currentIdx].alt;
-      const prevBtn = document.createElement('button'); prevBtn.className = 'lightbox-nav lightbox-prev'; prevBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>';
-      const nextBtn = document.createElement('button'); nextBtn.className = 'lightbox-nav lightbox-next'; nextBtn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>';
-      const counter = document.createElement('div'); counter.className = 'lightbox-counter'; counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length;
-      function updateImg() { imgEl.src = caseImgs[currentIdx].src; imgEl.alt = caseImgs[currentIdx].alt; counter.textContent = (currentIdx + 1) + ' / ' + caseImgs.length; }
-      prevBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx - 1 + caseImgs.length) % caseImgs.length; updateImg(); });
-      nextBtn.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = (currentIdx + 1) % caseImgs.length; updateImg(); });
-      overlay.appendChild(imgEl); overlay.appendChild(prevBtn); overlay.appendChild(nextBtn); overlay.appendChild(counter);
-      document.body.appendChild(overlay); requestAnimationFrame(() => overlay.classList.add('active'));
-      const close = () => { overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 300); document.removeEventListener('keydown', onKey); };
-      overlay.addEventListener('click', (e) => { if (e.target === overlay || e.target === imgEl) close(); });
-      function onKey(e) { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') prevBtn.click(); if (e.key === 'ArrowRight') nextBtn.click(); }
-      document.addEventListener('keydown', onKey);
-    }
+      <div class="pain-grid">
+        <div class="pain-card">
+          <div class="pain-num">01</div>
+          <h3 class="pain-title">排期周期极慢</h3>
+          <p class="pain-desc">
+            一套优质详情页从寄样、进棚实拍到精修上架通常需要 3–5 天。织图直接上传商品基础白底图，分钟级即可生成多套差异化版式。
+          </p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-num">02</div>
+          <h3 class="pain-title">反复改稿沟通损耗</h3>
+          <p class="pain-desc">
+            运营与设计对齐难，来回修改 5–6 轮。织图拆解为四步清晰管线，每一步均支持人工干预与实时编辑，无需全盘推翻重来。
+          </p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-num">03</div>
+          <h3 class="pain-title">SKU 繁复难以复用</h3>
+          <p class="pain-desc">
+            面对几十个 SKU 逐个抠图排版重复度高。织图提供批量创建与后台异步生成队列，点击启动后无需盯屏，全量自动交付。
+          </p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-num">04</div>
+          <h3 class="pain-title">商业资产与隐私合规</h3>
+          <p class="pain-desc">
+            商业机密数据严防外泄。API Key 与资产凭证仅存于浏览器本地 localStorage，不上传任何中间云数据库，更支持私有网关无缝接入。
+          </p>
+        </div>
+      </div>
+    </section>
 
-    const initSmoothScroll = () => {
-      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
-      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
-      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
-      gsap.ticker.lagSmoothing(0);
-      return lenis;
-    };
-    initSmoothScroll();
-  </script>
+    <!-- 03. Pipeline Section -->
+    <section class="section-wrap" id="pipeline">
+      <div class="section-header">
+        <span class="section-tag">Architecture · 四步图文流水线</span>
+        <h2 class="section-heading">端到端可控、可微调的设计管线</h2>
+        <p class="section-desc">
+          告别黑盒随机抽卡，把每个阶段拆解为标准化、可审计的工业化模块。
+        </p>
+      </div>
 
+      <div class="pipeline-grid">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 01</div>
+            <h3 class="step-title">内容规划与解构</h3>
+          </div>
+          <p class="step-desc">
+            上传商品底图，多模态引擎自动识别商品品类、核心卖点、材质反射与适宜场景，生成结构化的分屏排版规划。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>耗时 &lt; 15 秒</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 02</div>
+            <h3 class="step-title">Prompt 自动审查</h3>
+          </div>
+          <p class="step-desc">
+            Visual Prompt Agent 在每次提交前自动校验并优化提示词结构，锁定品牌调性、镜头角度与色彩方案，消除幻觉。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>风格一致性保障</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 03</div>
+            <h3 class="step-title">多维并发视觉渲染</h3>
+          </div>
+          <p class="step-desc">
+            对接最新商品图文生成模型，针对各电商主流平台比例（3:4 / 1:1 / 16:9）自动渲染多语种高保真场景图与局部特写。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>高并发异步渲染</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 04</div>
+            <h3 class="step-title">内置画布无损精修</h3>
+          </div>
+          <p class="step-desc">
+            出图后直接在网页内置轻量画布中进行局部重绘、字体排版、对齐修正与文案微调，支持一键分层导出成品切图。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>高保真印刷级导出</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. Gallery Section -->
+    <section class="section-wrap" id="gallery">
+      <div class="section-header">
+        <span class="section-tag">Case Study · 实机界面与产出</span>
+        <h2 class="section-heading">织图产品实际运行界面</h2>
+        <p class="section-desc">
+          点击任意界面卡片可调出高清大图，细致查看交互细节、页面结构与出图品质。
+        </p>
+      </div>
+
+      <div class="gallery-grid">
+        <article class="gallery-tile" data-index="0">
+          <div class="gallery-screen aspect-ui">
+            <img src="./1.webp" alt="01 / 上传底图与智能分析" loading="lazy">
+            <div class="gallery-expand-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              点击放大
+            </div>
+          </div>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">01 / 上传底图与智能分析</h3>
+              <span class="gallery-tag">Upload &amp; Analyze</span>
+            </div>
+            <p class="gallery-desc">
+              本地拖拽商品底图，多模态实时提取商品几何轮廓与材质特征，自动生成多维度营销卖点与排版建议。
+            </p>
+          </div>
+        </article>
+
+        <article class="gallery-tile" data-index="1">
+          <div class="gallery-screen aspect-ui">
+            <img src="./2.webp" alt="02 / 批量并发渲染" loading="lazy">
+            <div class="gallery-expand-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              点击放大
+            </div>
+          </div>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">02 / 批量并发渲染</h3>
+              <span class="gallery-tag">Batch Generation</span>
+            </div>
+            <p class="gallery-desc">
+              支持多任务并行后台运行，一次性覆盖主图、白底图、场景图与细节放大特写，大幅缩减重复等待时间。
+            </p>
+          </div>
+        </article>
+
+        <article class="gallery-tile" data-index="2">
+          <div class="gallery-screen aspect-ui">
+            <img src="./3.webp" alt="03 / 浏览器内无损精修" loading="lazy">
+            <div class="gallery-expand-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              点击放大
+            </div>
+          </div>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">03 / 浏览器内无损精修</h3>
+              <span class="gallery-tag">In-Browser Editor</span>
+            </div>
+            <p class="gallery-desc">
+              无需开启繁重设计软件，直接在网页内调教色彩对比度、局部重绘商品残损部位，并自由替换排版文案。
+            </p>
+          </div>
+        </article>
+
+        <article class="gallery-tile" data-index="3">
+          <div class="gallery-screen aspect-ui">
+            <img src="./4.webp" alt="04 / 一键成品全渠道交付" loading="lazy">
+            <div class="gallery-expand-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              点击放大
+            </div>
+          </div>
+          <div class="gallery-info">
+            <div class="gallery-title-row">
+              <h3 class="gallery-title">04 / 一键成品全渠道交付</h3>
+              <span class="gallery-tag">Export &amp; Ready</span>
+            </div>
+            <p class="gallery-desc">
+              按主流电商平台规则一键分段导出详情长图与各尺寸切图，完美满足天猫、京东、亚马逊等渠道规范。
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 05. Tools Matrix Section -->
+    <section class="section-wrap" id="tools">
+      <div class="section-header">
+        <span class="section-tag">Tech Stack · 全栈技术矩阵</span>
+        <h2 class="section-heading">现代化技术底座与 AI 框架</h2>
+        <p class="section-desc">
+          选用工业级前沿技术选型，兼顾敏捷交付、轻量性能与本地企业级数据隐私。
+        </p>
+      </div>
+
+      <div class="tools-grid">
+        <div class="tool-tile">
+          <img src="../../assets/icon/claudecode-color-dark.webp" alt="Claude Code" loading="lazy">
+          <div class="tool-name">Claude Code</div>
+          <div class="tool-role">Agent 自动化辅助研发</div>
+        </div>
+        <div class="tool-tile">
+          <img src="../../assets/icon/openai-color.webp" alt="OpenAI API" loading="lazy">
+          <div class="tool-name">ChatGPT API</div>
+          <div class="tool-role">多模态分析与视觉渲染</div>
+        </div>
+        <div class="tool-tile">
+          <img src="../../assets/icon/deepseek.webp" alt="DeepSeek" loading="lazy">
+          <div class="tool-name">DeepSeek</div>
+          <div class="tool-role">高性价比文案卖点提炼</div>
+        </div>
+        <div class="tool-tile">
+          <img src="../../assets/icon/gemini-color-dark.webp" alt="Gemini" loading="lazy">
+          <div class="tool-name">Gemini</div>
+          <div class="tool-role">长上下文视觉语义解构</div>
+        </div>
+        <div class="tool-tile">
+          <img src="./icon/python.webp" alt="Python" loading="lazy">
+          <div class="tool-name">Python + Electron</div>
+          <div class="tool-role">跨平台双端原生工作台</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Philosophy Quote -->
+    <div class="quote-box">
+      <p class="quote-text">
+        “织图是商家的 AI 超级设计助理——上传商品图，自动出高转化头图和详情页，让设计师和品牌主把精力聚焦在审美判断与商业决策上。”
+      </p>
+      <div class="quote-author">Methodology &amp; Architecture · 陈楠 Chen Nan</div>
+    </div>
+
+    <!-- 06. Next Project Navigation Footer -->
+    <footer class="project-nav-footer">
+      <div class="project-nav-row">
+        <div>
+          <a href="../../index.html#work" class="pill-badge" style="font-size: 13px; padding: 8px 16px;">
+            ← 返回作品集首页
+          </a>
+        </div>
+
+        <a href="../品牌联名广告图 Skill/品牌联名广告图技能.html" class="next-project-link">
+          <div>
+            <div class="next-project-label">Next Case · 下一个案例</div>
+            <div class="next-project-title">AI 品牌联名创意设计工作流</div>
+          </div>
+          <span class="next-project-arrow">↗</span>
+        </a>
+      </div>
+
+      <div class="site-footer-bottom">
+        <div>Chen Nan · AI Visual Designer &amp; Workflow Architect</div>
+        <div>Designed with Timeless Warm Editorial Aesthetics</div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Reusable Timeless Scripts -->
+  <script src="../../project-timeless.js"></script>
 </body>
 </html>

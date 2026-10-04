@@ -3,475 +3,262 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000">
-  <meta name="author" content="陈楠 Chennan">
-  <meta name="description" content="独立开发的 Chrome 扩展，右键任意网页图片 3 秒生成中英双语 AI 提示词，即刻复现原图风格。">
-  <title>AI 提示词逆向工具 | 陈楠</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-            mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'Monaco', 'monospace'],
-          },
-          colors: {
-            ds: {
-              bg: '#000000',
-              text: '#ffffff',
-              muted: 'rgba(255,255,255,0.55)',
-              sub: 'rgba(255,255,255,0.32)',
-              border: 'rgba(255,255,255,0.08)',
-              borderLight: 'rgba(255,255,255,0.12)',
-              surface: 'rgba(255,255,255,0.03)',
-              surfaceHover: 'rgba(255,255,255,0.06)',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body {
-      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-      background-color: #000;
-      color: #fff;
-      -webkit-font-smoothing: antialiased;
-    }
-    code, .font-mono {
-      font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, monospace;
-    }
-    ::selection { background: #ff9ac8; color: #000; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  <meta name="theme-color" content="#fcfcfb">
+  <meta name="author" content="陈楠">
+  <meta name="description" content="图个明白 — 独立开发的 Chrome 扩展，右键任意网页图片 3 秒生成中英双语 AI 提示词，即刻复现原图风格。">
+  <title>图个明白 — AI 提示词逆向工具 | 陈楠</title>
 
-    .header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 1.5rem 3rem; font-size: 0.8125rem; font-weight: 500;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      background-color: transparent; backdrop-filter: blur(0px);
-      border-bottom: 1px solid transparent;
-      transition: background-color 0.4s, backdrop-filter 0.4s, border-color 0.4s, padding 0.4s;
-    }
-    .header.is-scrolled {
-      padding-top: 1rem; padding-bottom: 1rem;
-      background-color: rgba(0,0,0,0.55);
-      backdrop-filter: blur(14px) saturate(160%);
-      -webkit-backdrop-filter: blur(14px) saturate(160%);
-      border-bottom-color: rgba(255,255,255,0.06);
-    }
-    .header-logo {
-      flex: 1; color: rgba(255,255,255,0.55); text-decoration: none;
-      display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;
-      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
-      transition: color 0.3s;
-    }
-    .header-logo:hover { color: #fff; }
-    .header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; }
-    .header-social {
-      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-      color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.8125rem;
-      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.3s;
-    }
-    .header-social:hover { color: #fff; }
-    @media (max-width: 768px) {
-      .header { padding: 1rem 1.5rem; }
-      .header.is-scrolled { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-    }
+  <!-- Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    .vignette { position: fixed; inset: 0; z-index: 9996; pointer-events: none;
-      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%);
-    }
-    .glow-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
-      filter: blur(120px); will-change: transform;
-    }
-    .glow-blob-1 { width: 600px; height: 600px; top: -15%; right: -10%;
-      background: radial-gradient(circle, rgba(226,242,31,0.38), transparent 70%);
-      animation: blobFloat1 20s ease-in-out infinite;
-    }
-    .glow-blob-2 { width: 500px; height: 500px; bottom: 5%; left: -8%;
-      background: radial-gradient(circle, rgba(226,242,31,0.30), transparent 70%);
-      animation: blobFloat2 24s ease-in-out infinite;
-    }
-    @keyframes blobFloat1 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33% { transform: translate(-50px,80px) scale(1.1); }
-      66% { transform: translate(40px,-40px) scale(0.95); }
-    }
-    @keyframes blobFloat2 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33% { transform: translate(60px,-50px) scale(1.15); }
-      66% { transform: translate(-30px,40px) scale(0.9); }
-    }
-    .spotlight-layer { position: fixed; inset: 0; z-index: 9997; pointer-events: none;
-      background: radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,255,255,0.035), transparent 70%);
-    }
-    .card-glow { position: relative; overflow: hidden;
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(18px) saturate(150%);
-      -webkit-backdrop-filter: blur(18px) saturate(150%);
-      border: 1px solid rgba(255,255,255,0.08) !important;
-      transition: border-color 0.6s cubic-bezier(0.22,1,0.36,1),
-                  box-shadow 0.6s cubic-bezier(0.22,1,0.36,1),
-                  background-color 0.6s cubic-bezier(0.22,1,0.36,1);
-    }
-    .card-glow::before {
-      content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 0; opacity: 0;
-      background:
-        radial-gradient(100px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.04), transparent),
-        radial-gradient(280px circle at var(--card-x,50%) var(--card-y,50%), rgba(255,255,255,0.02), transparent 50%);
-      transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1);
-      pointer-events: none;
-    }
-    .card-glow:hover::before { opacity: 1; }
-    .card-glow:hover {
-      border-color: rgba(226,242,31,0.55);
-      background-color: rgba(255,255,255,0.14);
-      box-shadow: 0 0 40px rgba(255,255,255,0.04), inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-    .card-glow > * { position: relative; z-index: 1; }
-
-    section h2 { position: relative; padding-left: 0.85rem; }
-    section h2::before { content: ""; position: absolute; left: 0; top: 0.3em; bottom: 0.3em;
-      width: 2.5px; background: #e2f21f; border-radius: 2px; opacity: 0.7;
-    }
-
-    .stat-card { text-align: center; padding: 1.5rem; border-radius: 16px;
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
-      backdrop-filter: blur(18px) saturate(150%);
-      -webkit-backdrop-filter: blur(18px) saturate(150%);
-      transition: all 0.3s;
-    }
-    .stat-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(226,242,31,0.2); }
-    .stat-value { font-size: 2.5rem; font-weight: 700; color: #e2f21f; line-height: 1; }
-    .stat-label { margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
-
-    .scroll-reveal { opacity: 0; transform: translateY(30px); }
-
-    .case-img { width: 100%; height: auto; object-fit: cover; border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease;
-      cursor: zoom-in;
-    }
-    .case-img:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-
-    .img-lightbox {
-      position: fixed; inset: 0; z-index: 100;
-      background: rgba(0,0,0,0.92);
-      display: flex; align-items: center; justify-content: center;
-      cursor: zoom-out; opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .img-lightbox.active { opacity: 1; }
-    .img-lightbox img {
-      max-width: 90vw; max-height: 90vh;
-      object-fit: contain; border-radius: 8px;
-      cursor: zoom-out;
-    }
-    .lightbox-nav {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.25s; z-index: 2; padding: 0;
-    }
-    .lightbox-nav:hover { background: rgba(226,242,31,0.15); border-color: rgba(226,242,31,0.4); }
-    .lightbox-prev { left: 16px; }
-    .lightbox-next { right: 16px; }
-    @media (min-width: 768px) {
-      .lightbox-prev { left: 32px; }
-      .lightbox-next { right: 32px; }
-    }
-    .lightbox-counter {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      color: rgba(255,255,255,0.35); font-size: 0.8rem; z-index: 2; letter-spacing: 0.05em;
-    }
-
-    @keyframes ripple-out {
-      0% { transform: scale(0.35); opacity: 0.7; }
-      100% { transform: scale(2.20); opacity: 0.0; }
-    }
-
-    .tool-card {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 10px;
-      padding: 20px 12px;
-      border-radius: 14px;
-      transition: background 0.3s;
-    }
-    .tool-card:hover {
-      background: rgba(255,255,255,0.03);
-    }
-    .tool-matrix-img {
-      width: 78px; height: 78px;
-      object-fit: contain;
-      border-radius: 10px;
-      transition: transform 0.3s ease;
-      display: block;
-      margin: 0 auto;
-    }
-    .tool-card:hover .tool-matrix-img {
-      transform: scale(1.12);
-    }
-  </style>
+  <!-- Timeless Design System -->
+  <link rel="stylesheet" href="../../project-timeless.css">
 </head>
-<body class="bg-ds-bg text-ds-text antialiased">
+<body>
 
-  <!-- 全局视觉层 -->
-  <div class="vignette"></div>
-  <div class="glow-blob glow-blob-1"></div>
-  <div class="glow-blob glow-blob-2"></div>
-  <div class="spotlight-layer"></div>
-
-  <!-- 导航栏 -->
-  <header class="header" id="header">
-    <a href="../../index.html#project-7" class="header-logo" aria-label="返回首页">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+  <!-- Floating Minimal Back Button (Smart Auto-Hide) -->
+  <aside class="floating-back-wrap">
+    <a href="../../index.html#work" class="floating-back-btn" aria-label="返回作品集首页">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
-      <span>返回首页</span>
+      <span>返回作品集</span>
     </a>
-    <div class="header-right">
-      <a href="#results" class="header-social"><span>量化成果</span></a>
-      <a href="#methodology" class="header-social"><span>核心流程</span></a>
-    </div>
-  </header>
+  </aside>
 
+  <!-- Main Container -->
+  <main class="container">
 
-  <!-- Hero -->
-  <header class="pt-48 pb-20 px-8 sm:px-12">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-6 flex flex-wrap items-center gap-3">
-        <span class="text-[0.75rem] text-white/35 tracking-[-0.01em]">2026 · 独立设计 & 开发</span>
-        <span class="px-2 py-0.5 rounded text-[0.65rem] font-medium tracking-wider uppercase" style="background: rgba(226,242,31,0.12); color: #e2f21f; border: 1px solid rgba(226,242,31,0.25);">Vibe Coding · 独立开发</span>
+    <!-- 01. Hero Section -->
+    <section class="hero-section" id="overview">
+      <div class="hero-content-wrap">
+        <div class="hero-meta-row">
+          <span class="pill-badge pill-badge-accent">独立产品 · 浏览器扩展</span>
+          <span class="pill-badge">Vibe Coding · 独立全栈</span>
+          <span class="pill-badge">Chrome Web Store MV3</span>
+          <span class="hero-meta-text">2026 Production · Browser Extension</span>
+        </div>
+
+        <h1 class="hero-title">图个明白 — AI 提示词逆向工具</h1>
+        <p class="hero-subtitle">Reverse Engineer Visual Prompts with a Single Right-Click</p>
+
+        <p class="hero-lead">
+          网上看到惊艳视觉却不知如何写出对应的 Prompt？我们用 Vibe Coding 敏捷研发了这款 Chrome 浏览器扩展——<strong>右键任意网页图片，3 秒生成结构化中英双语提示词</strong>，粘贴到 Midjourney、FLUX 或即梦即可高保真复现。体积小于 100KB，零外部重型依赖，开箱即用。
+        </p>
+
+        <div class="hero-labels-row">
+          <span class="hero-label-pill">右键即用 · 零交互门槛</span>
+          <span class="hero-label-pill">中英双语 · 7 维解构输出</span>
+          <span class="hero-label-pill">&lt;100KB · 零依赖 · 纯原生</span>
+          <span class="hero-label-pill">Chrome Extension MV3 规范</span>
+        </div>
       </div>
 
-      <h1 class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
-        AI 提示词逆向工具<br><span class="text-white/75">右键一张图</span> <span style="color:#e2f21f;">3 秒出提示词</span>
-      </h1>
+      <!-- 4 Golden Metrics Strip -->
+      <div class="hero-metrics-strip">
+        <div class="metric-card">
+          <div class="metric-val">100<span class="metric-val-unit">倍</span></div>
+          <div class="metric-label">操作链路提速</div>
+          <div class="metric-desc">10–20 分钟手搓 → 3 秒右键一键解析</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">&lt;100<span class="metric-val-unit">KB</span></div>
+          <div class="metric-label">极轻量扩展体积</div>
+          <div class="metric-desc">零框架臃肿依赖 · 毫秒级原生唤起</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">5<span class="metric-val-unit">步</span></div>
+          <div class="metric-label">零摩擦闭环体验</div>
+          <div class="metric-desc">观察 → 触发 → 解构 → 输出 → 复用</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">双语<span class="metric-val-unit"></span></div>
+          <div class="metric-label">专业提示词同步生成</div>
+          <div class="metric-desc">中文意图 + 英文工业级参数精准对齐</div>
+        </div>
+      </div>
+    </section>
 
-      <p class="mt-8 text-[1.125rem] text-white/65 leading-[1.7] tracking-[-0.01em] max-w-2xl">
-        看到好图不会写 Prompt？我用 Vibe Coding 独立开发了这个 Chrome 扩展——<strong style="color:#fff;">右键网页图片，3 秒生成中英双语提示词</strong>，复制到任意生图工具就能复现。&lt;100KB，零依赖，开箱即用。
+    <!-- 02. Live Demo Video Section -->
+    <section class="section-wrap" id="demo">
+      <div class="section-header">
+        <span class="section-tag">Demo · 实操体验</span>
+        <h2 class="section-heading">右键任意图片，3 秒逆向出提示词</h2>
+        <p class="section-desc">
+          完整演示真实网页浏览场景下的唤起与多模态反推流程，即看即所得。
+        </p>
+      </div>
+
+      <!-- Video Demo Box -->
+      <div class="demo-box">
+        <div class="demo-screen">
+          <video controls playsinline preload="metadata">
+            <source src="视频.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="demo-caption">
+          <span>扩展实机录屏 · 1920 × 1080 Full HD 真实操作全过程展示</span>
+          <a href="https://github.com/LillltaChen/tuge-mingbai" target="_blank" rel="noopener noreferrer" class="pill-badge" style="font-size: 11px;">
+            在 GitHub 查看开源代码 ↗
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03. Pipeline Section -->
+    <section class="section-wrap" id="methodology">
+      <div class="section-header">
+        <span class="section-tag">Architecture · 五步零摩擦流程</span>
+        <h2 class="section-heading">无缝融入日常工作流的极简体验</h2>
+        <p class="section-desc">
+          告别“截图保存-切换应用-上传提问”繁琐长链路，每一步均极致顺畅。
+        </p>
+      </div>
+
+      <div class="pipeline-grid cols-5">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 01</div>
+            <h3 class="step-title">无感观察灵感</h3>
+          </div>
+          <p class="step-desc">
+            在 Behance、Pinterest 或任意网页浏览到优质视觉，直接右键唤起上下文菜单，无需任何截图步骤。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>零截图 · 零切换</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 02</div>
+            <h3 class="step-title">后台自动捕获</h3>
+          </div>
+          <p class="step-desc">
+            扩展后台 Service Worker 自动解析图片真实源地址，利用 Chrome MV3 安全规范与大模型建立轻量连接。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>毫秒级异步连接</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 03</div>
+            <h3 class="step-title">多模态维度解构</h3>
+          </div>
+          <p class="step-desc">
+            针对构图视角、光影类型、色彩搭配、材质细节与镜头参数进行 7 大维度结构化逆向推导。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>7 维结构化拆解</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 04</div>
+            <h3 class="step-title">双语浮层呈现</h3>
+          </div>
+          <p class="step-desc">
+            页面原位滑出轻盈毛玻璃浮层，清晰展示中文语义解构与经语法优化的英文生图提示词。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>原位浮层 · 零遮挡</span>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">STEP 05</div>
+            <h3 class="step-title">一键复制与复现</h3>
+          </div>
+          <p class="step-desc">
+            轻触复制按钮即可存入系统剪贴板，支持直接投入 Midjourney、即梦或 Stable Diffusion 高保真还原。
+          </p>
+          <div class="step-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>即刻投入生产</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04. Tools Matrix Section -->
+    <section class="section-wrap" id="tools">
+      <div class="section-header">
+        <span class="section-tag">Stack · 技术矩阵</span>
+        <h2 class="section-heading">现代轻量级技术栈</h2>
+        <p class="section-desc">
+          拒绝不必要的现代框架负担，追求纯粹的原生性能与极致响应速度。
+        </p>
+      </div>
+
+      <div class="tools-grid cols-4">
+        <div class="tool-tile">
+          <img src="../../assets/icon/github-light.webp" alt="Chrome MV3" loading="lazy">
+          <div class="tool-name">Chrome Extension MV3</div>
+          <div class="tool-role">最新规范浏览器原生插件架构</div>
+        </div>
+        <div class="tool-tile">
+          <img src="../../assets/icon/openai-color.webp" alt="OpenAI API" loading="lazy">
+          <div class="tool-name">ChatGPT API</div>
+          <div class="tool-role">多模态高精度视觉反推与解构</div>
+        </div>
+        <div class="tool-tile">
+          <img src="../../assets/icon/claudecode-color-dark.webp" alt="Claude Code" loading="lazy">
+          <div class="tool-name">Claude Code</div>
+          <div class="tool-role">全栈架构与代码敏捷生成</div>
+        </div>
+        <div class="tool-tile">
+          <img src="../../assets/ico.webp" alt="Vanilla JS" loading="lazy">
+          <div class="tool-name">Vanilla JS &amp; CSS</div>
+          <div class="tool-role">&lt;100KB 零外部重型依赖</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Philosophy Quote Block -->
+    <div class="quote-box">
+      <p class="quote-text">
+        “最好的 AI 工具往往不是功能最繁琐的，而是无缝嵌入你原有工作流时摩擦力最小、近乎察觉不到存在的那一个。”
       </p>
-
-      <div class="mt-10 flex flex-wrap gap-3">
-        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>右键即用 · 零操作门槛
-        </span>
-        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>中英双语 · 结构化输出
-        </span>
-        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>&lt;100KB · 零依赖 · 纯前端
-        </span>
-        <span class="card-glow inline-flex items-center gap-2 px-4 py-2 rounded-[22px] border border-white/[0.08] text-[0.8125rem] text-white/50">
-          <span class="w-1.5 h-1.5 rounded-full" style="background:#e2f21f;"></span>Chrome Extension MV3
-        </span>
-      </div>
+      <div class="quote-author">Product Philosophy · 陈楠 Chen Nan</div>
     </div>
-  </header>
 
-  <!-- 1. 演示视频 -->
-  <section class="pb-16 px-8 sm:px-12">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 scroll-reveal">
-        <h2 class="text-[1.1rem] font-semibold tracking-[-0.02em] text-white/90">右键图片，3 秒出 AI 提示词</h2>
-        <a href="https://github.com/LillltaChen/tuge-mingbai" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-[0.8rem] text-white/40 hover:text-[#e2f21f] transition-colors shrink-0">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          <span>GitHub 开源</span>
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+    <!-- 05. Next Project Navigation Footer -->
+    <footer class="project-nav-footer">
+      <div class="project-nav-row">
+        <div>
+          <a href="../../index.html#work" class="pill-badge" style="font-size: 13px; padding: 8px 16px;">
+            ← 返回作品集首页
+          </a>
+        </div>
+
+        <a href="../网感训练板/网感训练板.html" class="next-project-link">
+          <div>
+            <div class="next-project-label">Next Case · 下一个案例</div>
+            <div class="next-project-title">网感训练板 — 爆款视觉分析</div>
+          </div>
+          <span class="next-project-arrow">↗</span>
         </a>
       </div>
-      <div class="card-glow rounded-[22px] border border-white/[0.08] overflow-hidden scroll-reveal">
-        <video controls playsinline preload="metadata" class="w-full aspect-video object-cover" style="display:block;">
-          <source src="视频.mp4" type="video/mp4">
-        </video>
+
+      <div class="site-footer-bottom">
+        <div>Chen Nan · AI Visual Designer &amp; Workflow Architect</div>
+        <div>Designed with Timeless Warm Editorial Aesthetics</div>
       </div>
-    </div>
-  </section>
+    </footer>
 
-  <!-- 2. 量化成果 -->
-  <section class="py-20 px-8 sm:px-12" id="results">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-12 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">量化成果</h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl">
-          把截图、切换、粘贴、询问的全流程压缩到右键 3 秒。
-        </p>
-      </div>
+  </main>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 scroll-reveal">
-        <div class="stat-card">
-          <div class="stat-value"><span class="stat-number">100</span>×</div>
-          <div class="stat-label">
-            <span style="color:#e2f21f;font-weight:500;">效率提升</span><br>
-            10-20min → 3 秒，六步操作变一步
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value"><span class="stat-number">100</span>KB</div>
-          <div class="stat-label">
-            <span style="color:#e2f21f;font-weight:500;">扩展体积</span><br>
-            零框架依赖，纯原生 JS
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value"><span class="stat-number">5</span>步</div>
-          <div class="stat-label">
-            <span style="color:#e2f21f;font-weight:500;">一键闭环</span><br>
-            观察→触发→解构→输出→复用
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">双语</div>
-          <div class="stat-label">
-            <span style="color:#e2f21f;font-weight:500;">自动输出</span><br>
-            中英提示词同步生成
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. 核心流程 -->
-  <section class="py-20 px-8 sm:px-12" id="methodology">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-10 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">产品架构：五步零摩擦流程</h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.7] max-w-xl">
-          右键图片 → AI 解构 → 生成提示词 → 一键复用。用户旅程零中断，每一步都可独立复用到其他产品场景。
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 scroll-reveal">
-        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 01</div>
-          <h4 class="text-[0.95rem] font-semibold text-white mb-2">观察</h4>
-          <p class="text-[0.8rem] text-white/50 leading-[1.7]">在任意网页看到灵感图，右键唤起扩展菜单。无需截图、无需切换应用、无需上传。</p>
-        </div>
-        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 02</div>
-          <h4 class="text-[0.95rem] font-semibold text-white mb-2">触发</h4>
-          <p class="text-[0.8rem] text-white/50 leading-[1.7]">扩展自动捕获图片 URL 并发送至 AI 模型。Chrome Extension MV3 架构确保权限安全和性能。</p>
-        </div>
-        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 03</div>
-          <h4 class="text-[0.95rem] font-semibold text-white mb-2">解构</h4>
-          <p class="text-[0.8rem] text-white/50 leading-[1.7]">AI 在 3-8 秒内拆解图片的风格要素：构图、光影、色彩、材质、情绪、镜头语言。</p>
-        </div>
-        <div class="p-6 rounded-[18px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 04</div>
-          <h4 class="text-[0.95rem] font-semibold text-white mb-2">输出</h4>
-          <p class="text-[0.8rem] text-white/50 leading-[1.7]">生成中英双语结构化提示词，直接复制到 Midjourney / GPT Image / 即梦 AI 等工具。</p>
-        </div>
-        <div class="p-6 rounded-[18px] border border-white/[0.06] lg:col-span-2" style="background: rgba(255,255,255,0.02);">
-          <div class="text-[0.7rem] font-mono mb-3" style="color:#e2f21f;">STEP 05</div>
-          <h4 class="text-[0.95rem] font-semibold text-white mb-2">复用</h4>
-          <p class="text-[0.8rem] text-white/50 leading-[1.7]">提示词一键复制，粘贴到任意 AI 生图工具即可复现原图风格。输出格式标准化，兼容主流生图工具。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. 工具矩阵 -->
-  <section class="py-20 px-8 sm:px-12" id="tools">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-10 scroll-reveal">
-        <h2 class="text-[1.65rem] sm:text-[1.85rem] font-semibold tracking-[-0.02em] text-white mb-4">工具矩阵</h2>
-        <p class="text-[0.95rem] text-white/50 leading-[1.8] max-w-xl">每个环节对应的最优 AI 工具</p>
-      </div>
-      <div class="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-5 scroll-reveal">
-        <div class="tool-card">
-          <img loading="lazy" src="./icon/python.webp" alt="Python" class="tool-matrix-img">
-          <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">Python</div>
-        </div>
-        <div class="tool-card">
-          <img loading="lazy" src="./icon/claudecode-color-dark.webp" alt="Claude Code" class="tool-matrix-img">
-          <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">Claude Code</div>
-        </div>
-        <div class="tool-card">
-          <img loading="lazy" src="./icon/chrome.webp" alt="Chrome" class="tool-matrix-img">
-          <div class="text-[0.65rem] font-medium text-white/30 uppercase tracking-wider">Chrome</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. 关键认知 -->
-  <section class="py-16 px-8 sm:px-12">
-    <div class="max-w-5xl mx-auto">
-      <div class="scroll-reveal p-8 md:p-10 rounded-[22px] border border-white/[0.06]" style="background: rgba(255,255,255,0.02);">
-        <p class="text-[1.15rem] md:text-[1.35rem] text-white/80 leading-[1.6] font-medium text-center max-w-2xl mx-auto">
-          "这个时代最好的地方在于：发现一个痛点，就能用 Vibe Coding 把它变成一个人人都能用的工具。"
-        </p>
-        <div class="mt-6 text-center text-[0.8rem] text-white/30 tracking-wider uppercase">产品思维 × Vibe Coding</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="mt-12 py-10 px-8 sm:px-12 border-t border-white/[0.07]">
-    <div class="max-w-5xl mx-auto flex flex-col items-center gap-3 text-[0.8rem] text-white/40">
-      <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.7rem] text-white/20">
-        <span>Built with Python</span><span>·</span>
-        <span>Claude Code</span><span>·</span>
-        <span>Chrome Extension MV3</span><span>·</span>
-        <span>vanilla JS</span>
-      </div>
-      <p>Design & Development by ChenNan</p>
-    </div>
-  </footer>
-
-  <!-- 背景视频 -->
-  <video autoplay muted loop playsinline style="position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;object-fit:cover;opacity:0.55;">
-    <source src="../../pixel-blast-bg.webm" type="video/webm">
-  </video>
-
-
-  <!-- JS -->
-  <script>
-    window.addEventListener('scroll', () => {
-      document.getElementById('header').classList.toggle('is-scrolled', window.scrollY > 20);
-    });
-    document.addEventListener('mousemove', (e) => {
-      document.body.style.setProperty('--mouse-x', e.clientX + 'px');
-      document.body.style.setProperty('--mouse-y', e.clientY + 'px');
-    });
-    document.querySelectorAll('.card-glow').forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--card-x', (e.clientX - rect.left) + 'px');
-        card.style.setProperty('--card-y', (e.clientY - rect.top) + 'px');
-      });
-    });
-
-    gsap.registerPlugin(ScrollTrigger);
-    gsap.utils.toArray('.scroll-reveal').forEach(el => {
-      gsap.to(el, {
-        opacity: 1, y: 0, duration: 0.8, ease: 'power3.out',
-        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
-      });
-    });
-
-    gsap.utils.toArray('.stat-number').forEach(el => {
-      gsap.from(el, {
-        textContent: 0, duration: 1.5, ease: 'power2.out', snap: { textContent: 1 },
-        scrollTrigger: { trigger: el, start: 'top 85%' }
-      });
-    });
-
-    const initSmoothScroll = () => {
-      if (!window.Lenis || !window.matchMedia("(pointer: fine)").matches) return null;
-      const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.85, touchMultiplier: 1, smoothWheel: true });
-      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
-      gsap.ticker.lagSmoothing(0);
-      return lenis;
-    };
-    initSmoothScroll();
-  </script>
+  <!-- Reusable Timeless Scripts -->
+  <script src="../../project-timeless.js"></script>
 </body>
 </html>
