@@ -1,235 +1,481 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#fcfcfb">
   <meta name="author" content="陈楠">
-  <meta name="description" content="AI 内容工作流设计师 · 成本降低 95%，周期缩短 83%，CTR 提升 67%">
+  <meta name="description" content="陈楠 (Lilllta) — AI 内容工作流设计师 · 给创意内容搭生产线的人 · 成本降低 95%，周期缩短 83%">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="陈楠 — AI 内容工作流设计师">
-  <meta property="og:description" content="AI 内容工作流设计师 · 成本降低 95%，周期缩短 83%，CTR 提升 67%">
+  <meta property="og:title" content="陈楠 — AI 工作流与创意管线设计师">
+  <meta property="og:description" content="给创意内容搭生产线的人 · 驯化好的 Agent 全线跑 · 商业视觉 · 社媒内容 · AI工具">
   <meta property="og:image" content="./assets/ico.webp">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="陈楠 — AI 内容工作流设计师">
-  <meta name="twitter:description" content="AI 内容工作流设计师 · 成本降低 95%，周期缩短 83%，CTR 提升 67%">
-  <meta name="twitter:image" content="./assets/ico.webp">
-  <meta name="twitter:creator" content="@faaaannng">
-  <title>陈楠 — 给创意内容搭生产线的人</title>
+  <title>陈楠 (Lilllta) — Beautiful Systems &amp; AI Pipelines</title>
+  
   <link rel="icon" type="image/png" href="./assets/ico.webp">
-  <link rel="stylesheet" href="./assets/fonts/bitcount.css">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .site-footer-mark { color: rgba(255, 255, 255, 0.6); }
-  </style>
+  
+  <!-- Web Fonts: Instrument Serif + Inter (with system font fallbacks) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./timeless.css">
 </head>
 <body>
-  <video class="video-bg" autoplay muted loop playsinline>
-    <source src="./pixel-blast-bg.webm" type="video/webm">
-  </video>
-  <div class="container">
-    <header class="header">
-      <a class="header-logo" href="index.html" aria-label="Lilllta">
-        <svg width="64" height="24" viewBox="0 0 64 24" xmlns="http://www.w3.org/2000/svg">
-          <text x="0" y="18" font-family="'Bitcount Prop Single', monospace" font-size="18" font-weight="500" letter-spacing="0.04em" fill="currentColor">Lilllta</text>
-        </svg>
+
+  <!-- Floating Minimal Header (Timeless Style) -->
+  <header class="site-nav">
+    <div class="site-nav-inner">
+      <a href="#" class="nav-logo-mark" aria-label="Lilllta Chen">
+        <div class="nav-logo-icon">C</div>
+        <span>ChenNan</span>
       </a>
-      <nav class="nav">
-        <a href="#commercial" class="nav-section-link">商业视觉</a>
-        <a href="#social" class="nav-section-link">社媒内容</a>
-        <a href="#ai-tools" class="nav-section-link">AI工具</a>
-        <a href="about/index.html">关于</a>
-        <a href="about/index.html#contact">联系</a>
-      </nav>
-      <div class="header-right">
-        <span class="nav-stat" aria-label="GitHub 星标数">25.3K <i></i></span>
-        <a href="https://github.com/LillltaChen" class="nav-github" target="_blank" rel="noopener" aria-label="GitHub">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.1.79-.25.79-.56v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18.92-.26 1.9-.38 2.88-.39.98 0 1.96.13 2.88.39 2.2-1.49 3.16-1.18 3.16-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.42-2.69 5.38-5.25 5.67.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
-          </svg>
-        </a>
+      <div class="nav-divider"></div>
+      <ul class="nav-links">
+        <li class="nav-link-item"><a href="#work">作品 Work</a></li>
+        <li class="nav-link-item"><a href="#spotlight">旗舰 Spotlight</a></li>
+        <li class="nav-link-item"><a href="#knowledge">知识库 Wiki</a></li>
+        <li class="nav-link-item"><a href="#contact">联系 Contact</a></li>
+      </ul>
+      <div class="nav-status">
+        <span class="nav-status-dot"></span>
+        <span>可接项目</span>
       </div>
-    </header>
+    </div>
+  </header>
 
+  <div class="site-wrapper">
 
-    <main class="main hero-section">
-      <h1 class="title" aria-label="HELLO.">
-        <div class="title-row">
-          <span class="title-letter" aria-hidden="true">H</span>
-          <span class="title-letter" aria-hidden="true">E</span>
-          <span class="title-letter" aria-hidden="true">L</span>
-          <span class="title-letter" aria-hidden="true">L</span>
-          <span class="title-letter" aria-hidden="true">O</span>
-          <span class="dot" aria-hidden="true"></span>
-        </div>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-supertag">
+        <span class="hero-supertag-dot"></span>
+        <span>AI Workflow Architect · Portfolio 2026</span>
+      </div>
+      
+      <h1 class="hero-title">
+        <span class="title-line">Creative Systems &amp;</span>
+        <span class="title-line serif-italic">AI Pipelines</span>
       </h1>
-      <div class="hero-description">
-        <p class="hero-subtitle">我是陈楠，重度 AI Agent 使用者，广告、电商、小红书…内容创作，驯化好的 Agent 全线跑。</p>
-        <a href="#work" class="hero-cta">看我的作品</a>
-      </div>
-    </main>
 
-    <section class="projects-section" id="work" aria-labelledby="work-title">
+      <p class="hero-chinese-sub">
+        我是陈楠，重度 AI Agent 使用者。专注将传统创意内容生产重构为模块化、工业级的全自动生产管线。
+      </p>
 
-      <!-- ====== 商业视觉 ====== -->
-      <div class="category-section" id="commercial">
-        <div class="category-header">
-          <h3 class="section-title">商业视觉</h3>
-          <p class="category-desc">从电商素材到品牌广告，AI 驱动的商业视觉生产线——成本降低 95%，分钟级出图</p>
-        </div>
-        <div class="project-list">
-
-        <a id="project-4" class="project-card" href="./ai-projects/电商图文一体化生成工具/电商图文一体化生成工具.html" target="_blank" rel="noopener noreferrer" aria-label="查看 电商图文一体化生成工具项目" data-category="电商视觉">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/电商图文一体化生成工具.webp" alt="电商图文一体化生成工具封面" loading="lazy">
-            <div class="project-tag">电商视觉</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
+      <!-- Hero Showreel Video (16:9 Canvas) -->
+      <div class="hero-media-wrapper">
+        <div class="hero-media-glow"></div>
+        <div class="hero-media-card">
+          <video autoplay loop muted playsinline poster="./ai-projects/封面2/视频动画工作流.webp">
+            <source src="./ai-projects/视频动画工作流/1耳机.mp4" type="video/mp4">
+          </video>
+          <div class="hero-media-badge">
+            <span class="hero-media-badge-pulse"></span>
+            <span>Showreel · AI Commercial Video Pipeline</span>
           </div>
-          <div class="project-info">
-            <h3>电商图文一体化生成工具</h3>
-            <p class="project-desc">效率提升超 200 倍 · 一套素材 ¥3000+ → ¥5</p>
-          </div>
-        </a>
-
-        <a id="project-2" class="project-card" href="./ai-projects/广告投放素材图生成 Skill/广告投放素材图生成技能.html" target="_blank" rel="noopener noreferrer" aria-label="查看 广告投放素材图生成 Skill 项目" data-category="广告投放">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/广告投放素材图生成 Skill.webp" alt="广告投放素材图生成 Skill 封面" loading="lazy">
-            <div class="project-tag">广告投放</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>广告投放素材图生成 Skill</h3>
-            <p class="project-desc">品牌名+产品图，AI 接管全流程，低成本批量出投放图</p>
-          </div>
-        </a>
-
-        <a id="project-3" class="project-card" href="./ai-projects/品牌联名广告图 Skill/品牌联名广告图技能.html" target="_blank" rel="noopener noreferrer" aria-label="查看 品牌联名创意设计 Skill 项目" data-category="广告创意">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/品牌联名创意设计 Skill.webp" alt="品牌联名创意设计 Skill 封面" loading="lazy">
-            <div class="project-tag">品牌广告</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>品牌联名创意设计 Skill</h3>
-            <p class="project-desc">一人管线 · 五步闭环，把团队协作变成创意流水线</p>
-          </div>
-        </a>
-
-        <a id="project-5" class="project-card" href="./ai-projects/视频动画工作流/视频动画工作流.html" target="_blank" rel="noopener noreferrer" aria-label="查看 视频动画工作流项目" data-category="视频动画">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/视频动画工作流.webp" alt="视频动画工作流封面" loading="lazy">
-            <div class="project-tag">视频动画</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>视频动画工作流</h3>
-            <p class="project-desc">无需拍摄 · 分钟级出片，AI 五步管线替代传统拍摄</p>
-          </div>
-        </a>
-
         </div>
       </div>
-
-      <div class="category-divider"></div>
-
-      <!-- ====== 社媒内容 ====== -->
-      <div class="category-section" id="social">
-        <div class="category-header">
-          <h3 class="section-title">社媒内容</h3>
-          <p class="category-desc">社交平台内容生产的系统化方案——从选题策略到视觉输出的完整链路</p>
-        </div>
-        <div class="project-list">
-
-        <a id="project-1" class="project-card" href="./ai-projects/小红书图文视觉工坊 Skill/小红书图文视觉工坊技能.html" target="_blank" rel="noopener noreferrer" aria-label="查看 小红书图文视觉工坊 Skill 项目" data-category="社媒内容">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/小红书图文视觉工坊 Skill.webp" alt="小红书图文视觉工坊 Skill 封面" loading="lazy">
-            <div class="project-tag">小红书图文</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>小红书图文视觉工坊 Skill</h3>
-            <p class="project-desc">40 套风格 × 10 步工作流，从选题到出图一站式图文生产线</p>
-          </div>
-        </a>
-
-        <a id="project-9" class="project-card" href="./ai-projects/公众号全流程写作 Skill/公众号全流程写作技能.html" target="_blank" rel="noopener noreferrer" aria-label="查看 公众号全流程写作 Skill 项目" data-category="社媒内容">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/公众号全流程写作 Skill.webp" alt="公众号全流程写作 Skill 封面" loading="lazy">
-            <div class="project-tag">公众号写作</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>公众号全流程写作 Skill</h3>
-            <p class="project-desc">从选题到推送三层封装，把脑子里的经验变成机器能跑的流程</p>
-          </div>
-        </a>
-
-        <a id="project-8" class="project-card" href="./ai-projects/网感训练板/网感训练板.html" target="_blank" rel="noopener noreferrer" aria-label="查看 网感训练板项目" data-category="社媒内容">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/网感训练板.webp" alt="网感训练板封面" loading="lazy">
-            <div class="project-tag">内容训练</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>网感训练板</h3>
-            <p class="project-desc">爆款拆建 + 网感训练，越练越有判断力</p>
-          </div>
-        </a>
-
-        </div>
-      </div>
-
-      <div class="category-divider"></div>
-
-      <!-- ====== AI 工具 ====== -->
-      <div class="category-section" id="ai-tools">
-        <div class="category-header">
-          <h3 class="section-title" style="font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;">AI 工具</h3>
-          <p class="category-desc">从方法论到产品，可复用的底层能力</p>
-        </div>
-        <div class="project-list">
-
-        <a id="project-6" class="project-card" href="./ai-projects/提示词工程 Skill/提示词工程技能.html" target="_blank" rel="noopener noreferrer" aria-label="查看 提示词工程 Skill 项目" data-category="工具">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/提示词工程 Skill.webp" alt="提示词工程 Skill 封面" loading="lazy">
-            <div class="project-tag">提示词方法</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>提示词工程 Skill</h3>
-            <p class="project-desc">100% 风格一致性，可复用的提示词工程 Skill</p>
-          </div>
-        </a>
-
-        <a id="project-7" class="project-card" href="./ai-projects/图个明白/图个明白.html" target="_blank" rel="noopener noreferrer" aria-label="查看 图个明白项目" data-category="工具">
-          <div class="project-cover">
-            <img decoding="async" src="./ai-projects/封面2/图个明白.webp" alt="图个明白封面" loading="lazy">
-            <div class="project-tag">Chrome 插件</div>
-            <div class="project-overlay"><span class="project-cta">查看搭建</span></div>
-          </div>
-          <div class="project-info">
-            <h3>图个明白</h3>
-            <p class="project-desc">Chrome 扩展 · GitHub 已开源，右键一张图 3 秒出提示词</p>
-          </div>
-        </a>
-
-        </div>
-      </div>
-
     </section>
-  </div>
 
-  <footer class="site-footer">
-    <div class="site-footer-inner">
-      <div class="site-footer-brand">
-        <a class="site-footer-mark" href="index.html">ChenNan / 2026</a>
+    <!-- Manifesto Statement with Timeless Inline Badges -->
+    <section class="manifesto-section">
+      <p class="manifesto-text">
+        陈楠 <span class="inline-badge">⚙️ Pipeline</span> 专注于 AI 工作流与创意管线工程 <span class="inline-badge">⚡ Agent</span>。把手工创作拆成系统，让 AI 模型自主闭环运转。
+        <strong>成本降低 95%，周期缩短 83%，分钟级高保真交付。</strong>
+      </p>
+
+      <div class="manifesto-metrics">
+        <div class="metric-item">
+          <span class="metric-number">95%</span>
+          <span class="metric-label">商业视觉制作成本降低</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-number">200x</span>
+          <span class="metric-label">电商图文一体化效率倍增</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-number">25.3K</span>
+          <span class="metric-label">GitHub 社区关注与认可</span>
+        </div>
       </div>
-      <p class="site-footer-copyline">Design & Development by ChenNan</p>
+    </section>
+
+    <!-- Toolchain & Ecosystem Marquee -->
+    <section class="marquee-section">
+      <p class="marquee-heading">Integrated Tech Stack &amp; Workflow Toolchains</p>
+      <div class="marquee-track">
+        <div class="marquee-item"><img src="./assets/icon/claude.webp" alt="Claude">Claude 3.7 / Code</div>
+        <div class="marquee-item"><img src="./assets/icon/midjourney-light.webp" alt="Midjourney">Midjourney v6</div>
+        <div class="marquee-item"><img src="./assets/icon/kling-color-dark.webp" alt="Kling">可灵 Kling AI</div>
+        <div class="marquee-item"><img src="./assets/icon/openai-light.webp" alt="OpenAI">OpenAI GPT-4o</div>
+        <div class="marquee-item"><img src="./assets/icon/deepseek.webp" alt="DeepSeek">DeepSeek R1</div>
+        <div class="marquee-item"><img src="./assets/icon/cursor-dark.webp" alt="Cursor">Cursor IDE</div>
+        <div class="marquee-item"><img src="./assets/icon/figma.webp" alt="Figma">Figma Design</div>
+        <div class="marquee-item"><img src="./assets/icon/jimeng-color-dark.webp" alt="Jimeng">即梦 Seedance</div>
+        <div class="marquee-item"><img src="./assets/icon/gemini-color-dark.webp" alt="Gemini">Google Gemini Pro</div>
+        <!-- Duplicated set for seamless loop -->
+        <div class="marquee-item"><img src="./assets/icon/claude.webp" alt="Claude">Claude 3.7 / Code</div>
+        <div class="marquee-item"><img src="./assets/icon/midjourney-light.webp" alt="Midjourney">Midjourney v6</div>
+        <div class="marquee-item"><img src="./assets/icon/kling-color-dark.webp" alt="Kling">可灵 Kling AI</div>
+        <div class="marquee-item"><img src="./assets/icon/openai-light.webp" alt="OpenAI">OpenAI GPT-4o</div>
+        <div class="marquee-item"><img src="./assets/icon/deepseek.webp" alt="DeepSeek">DeepSeek R1</div>
+        <div class="marquee-item"><img src="./assets/icon/cursor-dark.webp" alt="Cursor">Cursor IDE</div>
+        <div class="marquee-item"><img src="./assets/icon/figma.webp" alt="Figma">Figma Design</div>
+        <div class="marquee-item"><img src="./assets/icon/jimeng-color-dark.webp" alt="Jimeng">即梦 Seedance</div>
+        <div class="marquee-item"><img src="./assets/icon/gemini-color-dark.webp" alt="Gemini">Google Gemini Pro</div>
+      </div>
+    </section>
+
+    <!-- Selected Work: Horizontal Blossom Rail -->
+    <section class="work-section" id="work">
+      <div class="section-header-row">
+        <div class="section-title-wrap">
+          <span class="section-label">Selected Works · 09 Projects</span>
+          <h2 class="section-heading-serif">Crafted Pipelines</h2>
+        </div>
+
+        <div class="work-controls">
+          <div class="work-filter-tabs">
+            <button class="filter-tab active" data-filter="all">全部</button>
+            <button class="filter-tab" data-filter="commercial">商业视觉</button>
+            <button class="filter-tab" data-filter="social">社媒内容</button>
+            <button class="filter-tab" data-filter="tools">AI工具</button>
+          </div>
+          <div class="rail-arrows">
+            <button class="rail-arrow-btn rail-arrow-prev" aria-label="上一个作品">←</button>
+            <button class="rail-arrow-btn rail-arrow-next" aria-label="下一个作品">→</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horizontal Rail Track -->
+      <div class="rail-container">
+        <ul class="rail-track">
+
+          <!-- 01 电商图文一体化生成工具 -->
+          <li class="rail-item" data-category="commercial">
+            <a class="project-card-link" href="./ai-projects/电商图文一体化生成工具/电商图文一体化生成工具.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">电商视觉</span>
+                <img src="./ai-projects/封面2/电商图文一体化生成工具.webp" alt="电商图文一体化生成工具" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">电商图文一体化生成工具</h3>
+                  <p class="card-desc">效率提升 200 倍 · 一套素材 ¥3000+ → ¥5</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 02 视频动画工作流 -->
+          <li class="rail-item" data-category="commercial">
+            <a class="project-card-link" href="./ai-projects/视频动画工作流/视频动画工作流.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">视频动画</span>
+                <video autoplay loop muted playsinline poster="./ai-projects/封面2/视频动画工作流.webp">
+                  <source src="./ai-projects/视频动画工作流/4防晒.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">视频动画工作流</h3>
+                  <p class="card-desc">无需拍摄 · 分钟级出片，五步管线替代传统拍摄</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 03 广告投放素材图生成 Skill -->
+          <li class="rail-item" data-category="commercial">
+            <a class="project-card-link" href="./ai-projects/广告投放素材图生成 Skill/广告投放素材图生成技能.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">广告投放</span>
+                <img src="./ai-projects/封面2/广告投放素材图生成 Skill.webp" alt="广告投放素材图生成 Skill" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">广告投放素材图生成 Skill</h3>
+                  <p class="card-desc">品牌名+产品图，AI 接管全流程低成本批量出图</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 04 品牌联名创意设计 Skill -->
+          <li class="rail-item" data-category="commercial">
+            <a class="project-card-link" href="./ai-projects/品牌联名广告图 Skill/品牌联名广告图技能.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">品牌联名</span>
+                <img src="./ai-projects/封面2/品牌联名创意设计 Skill.webp" alt="品牌联名创意设计 Skill" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">品牌联名创意设计 Skill</h3>
+                  <p class="card-desc">一人管线 · 五步闭环，把团队协作变成创意流水线</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 05 小红书图文视觉工坊 Skill -->
+          <li class="rail-item" data-category="social">
+            <a class="project-card-link" href="./ai-projects/小红书图文视觉工坊 Skill/小红书图文视觉工坊技能.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">社媒内容</span>
+                <img src="./ai-projects/封面2/小红书图文视觉工坊 Skill.webp" alt="小红书图文视觉工坊 Skill" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">小红书图文视觉工坊 Skill</h3>
+                  <p class="card-desc">40 套风格 × 10 步工作流，一站式图文生产线</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 06 公众号全流程写作 Skill -->
+          <li class="rail-item" data-category="social">
+            <a class="project-card-link" href="./ai-projects/公众号全流程写作 Skill/公众号全流程写作技能.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">社媒写作</span>
+                <img src="./ai-projects/封面2/公众号全流程写作 Skill.webp" alt="公众号全流程写作 Skill" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">公众号全流程写作 Skill</h3>
+                  <p class="card-desc">从选题到推送三层封装，把经验变成机器运行流程</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 07 提示词工程 Skill -->
+          <li class="rail-item" data-category="tools">
+            <a class="project-card-link" href="./ai-projects/提示词工程 Skill/提示词工程技能.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">提示词体系</span>
+                <img src="./ai-projects/封面2/提示词工程 Skill.webp" alt="提示词工程 Skill" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">提示词工程 Skill</h3>
+                  <p class="card-desc">100% 风格一致性，工业化可复用的 Prompt 体系</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 08 图个明白 Chrome 插件 -->
+          <li class="rail-item" data-category="tools">
+            <a class="project-card-link" href="./ai-projects/图个明白/图个明白.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">Chrome 扩展</span>
+                <img src="./ai-projects/封面2/图个明白.webp" alt="图个明白" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">图个明白 (Chrome 扩展)</h3>
+                  <p class="card-desc">GitHub 开源 · 右键网页图片 3 秒反推高质量提示词</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- 09 网感训练板 -->
+          <li class="rail-item" data-category="social">
+            <a class="project-card-link" href="./ai-projects/网感训练板/网感训练板.html" target="_blank" rel="noopener noreferrer">
+              <div class="card-media-box">
+                <span class="card-tag-pill">内容感知</span>
+                <img src="./ai-projects/封面2/网感训练板.webp" alt="网感训练板" loading="lazy">
+              </div>
+              <div class="card-meta-row">
+                <div class="card-meta-text">
+                  <h3 class="card-title">网感训练板</h3>
+                  <p class="card-desc">爆款拆解 + 网感系统训练，让机器拥有审美判断力</p>
+                </div>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>
+          </li>
+
+        </ul>
+      </div>
+    </section>
+
+    <!-- Flagship Spotlight (Recollect Style Fan-out Cards) -->
+    <section class="spotlight-section" id="spotlight">
+      <div class="spotlight-wrapper">
+        <span class="spotlight-tag">Flagship Showcase · 核心代表作</span>
+        <h2 class="spotlight-title">From Concept to Rendered Cut</h2>
+        <p class="spotlight-desc">
+          AI 驱动的高端商业视频全链路闭环：将传统动辄数万元、耗时两周的拍摄与渲染管线，压缩为无人值守的自动化脚本。
+        </p>
+
+        <!-- Fan-out Video Deck with Spring Animations -->
+        <div class="fan-deck">
+          <div class="fan-card fan-card-1">
+            <video autoplay loop muted playsinline>
+              <source src="./ai-projects/视频动画工作流/1耳机.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="fan-card fan-card-2">
+            <video autoplay loop muted playsinline>
+              <source src="./ai-projects/视频动画工作流/2即食花胶.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="fan-card fan-card-3">
+            <video autoplay loop muted playsinline>
+              <source src="./ai-projects/视频动画工作流/3智能宠物喂食.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="fan-card fan-card-4">
+            <video autoplay loop muted playsinline>
+              <source src="./ai-projects/视频动画工作流/4防晒.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+
+        <a href="./ai-projects/视频动画工作流/视频动画工作流.html" target="_blank" rel="noopener noreferrer" class="spotlight-cta-btn">
+          <span>查看视频工作流搭建全貌</span>
+          <span>→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Knowledge Base & Principles -->
+    <section class="knowledge-section" id="knowledge">
+      <div class="section-title-wrap" style="margin-bottom: 40px;">
+        <span class="section-label">Engineering Methodology</span>
+        <h2 class="section-heading-serif">我怎么做 · 沉淀体系</h2>
+      </div>
+
+      <!-- 3 Principles -->
+      <div class="principles-grid">
+        <div class="principle-card">
+          <span class="principle-num">01</span>
+          <h3 class="principle-title">拆成模块，写成系统</h3>
+          <p class="principle-text">把所有创作细节标准化，从提示词、构图到灯光参数封装为 Skill，让 AI Agent 自主调度。</p>
+        </div>
+        <div class="principle-card">
+          <span class="principle-num">02</span>
+          <h3 class="principle-title">全链路闭环打通</h3>
+          <p class="principle-text">从品牌调性调研、产品线素材生成到最终社媒与广告交付，一条链路完全打通，无需人工拼接。</p>
+        </div>
+        <div class="principle-card">
+          <span class="principle-num">03</span>
+          <h3 class="principle-title">能复用，可落地，有结果</h3>
+          <p class="principle-text">小红书 8000+ 粉丝实盘验证，1000+ 订单变现，所有工作流均直接面向商业结果输出。</p>
+        </div>
+      </div>
+
+      <!-- Feishu Wiki Resources -->
+      <div class="wiki-cards-row">
+        <a href="https://ocna1kutbggv.feishu.cn/wiki/J4XPw3GH8ip2YPkY0WyciwPVnfe" target="_blank" rel="noopener noreferrer" class="wiki-card">
+          <div class="wiki-card-info">
+            <h4>AIGC 商业广告提示词合集</h4>
+            <p>飞书知识库 · 产品主视觉/创意海报模板库</p>
+          </div>
+          <span class="wiki-card-icon">↗</span>
+        </a>
+
+        <a href="https://ocna1kutbggv.feishu.cn/wiki/R0LmwkfEKiRgffkYg9WcvOVxnVe" target="_blank" rel="noopener noreferrer" class="wiki-card">
+          <div class="wiki-card-info">
+            <h4>AI 视频实战合集</h4>
+            <p>飞书知识库 · Seedance 到成片工作流</p>
+          </div>
+          <span class="wiki-card-icon">↗</span>
+        </a>
+
+        <a href="https://ocna1kutbggv.feishu.cn/wiki/BuEdwoRbliSKYuknGJlcA7RDnEh" target="_blank" rel="noopener noreferrer" class="wiki-card">
+          <div class="wiki-card-info">
+            <h4>AI Skill 实战合集</h4>
+            <p>飞书知识库 · 创作运营方法论沉淀</p>
+          </div>
+          <span class="wiki-card-icon">↗</span>
+        </a>
+      </div>
+    </section>
+
+  </div><!-- /site-wrapper -->
+
+  <!-- Site Footer (Timeless Wordmark & Action Pills) -->
+  <footer class="site-footer" id="contact">
+    <div class="site-wrapper">
+      <div class="footer-wordmark">LILLLTA CHEN</div>
+
+      <!-- Action Pills with One-Click Copy & Popover QR Codes -->
+      <div class="footer-contact-pills">
+        <!-- Phone -->
+        <button class="contact-pill-btn" data-copy="19575219272" data-copy-label="电话号码 (195 7521 9272)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          <span>195 7521 9272</span>
+        </button>
+
+        <!-- Email -->
+        <button class="contact-pill-btn" data-copy="chenluluaiss@gmail.com" data-copy-label="邮箱 (chenluluaiss@gmail.com)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+          <span>chenluluaiss@gmail.com</span>
+        </button>
+
+        <!-- WeChat (Popover) -->
+        <div class="contact-pill-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>微信联系</span>
+          <div class="qr-popover">
+            <img src="./ai-projects/wechat.webp" alt="微信二维码" loading="lazy">
+            <p class="qr-popover-caption">扫一扫添加微信</p>
+          </div>
+        </div>
+
+        <!-- 小红书 -->
+        <a href="https://xhslink.com/m/4496sPm6qEh" target="_blank" rel="noopener noreferrer" class="contact-pill-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m10 15 5-3-5-3v6Z"></path></svg>
+          <span>小红书 @Mr90s</span>
+          <div class="qr-popover">
+            <img src="./assets/小红书.webp" alt="小红书二维码" loading="lazy">
+            <p class="qr-popover-caption">小红书主页</p>
+          </div>
+        </a>
+
+        <!-- 公众号 -->
+        <div class="contact-pill-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path></svg>
+          <span>公众号</span>
+          <div class="qr-popover">
+            <img src="./assets/公众号.webp" alt="公众号二维码" loading="lazy">
+            <p class="qr-popover-caption">关注公众号</p>
+          </div>
+        </div>
+
+        <!-- GitHub -->
+        <a href="https://github.com/LillltaChen" target="_blank" rel="noopener noreferrer" class="contact-pill-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.1.79-.25.79-.56v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18.92-.26 1.9-.38 2.88-.39.98 0 1.96.13 2.88.39 2.2-1.49 3.16-1.18 3.16-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.42-2.69 5.38-5.25 5.67.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+          <span>GitHub · 25.3K</span>
+        </a>
+      </div>
+
+      <div class="footer-bottom-line">
+        <p>© 2026 CHEN NAN (LILLLTA). ALL RIGHTS RESERVED.</p>
+        <p>ARCHITECTED FOR ENDURING IMPACT.</p>
+      </div>
     </div>
   </footer>
 
-  <script src="./assets/gsap.min.js"></script>
+  <!-- Floating Toast -->
+  <div class="copy-toast" id="copyToast">已复制到剪贴板</div>
+
+  <!-- Scripts: GSAP & Lenis already in assets -->
   <script src="./assets/lenis.min.js"></script>
-  <script src="script.js"></script>
+  <script src="./assets/gsap.min.js"></script>
+  <script src="./timeless.js"></script>
 </body>
 </html>
