@@ -155,11 +155,13 @@ img, video {
 .nav-logo-mark {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px 4px 4px;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: -0.01em;
+  justify-content: center;
+  padding: 2px 4px 2px 2px;
+  transition: transform 0.2s var(--ease-smooth);
+}
+
+.nav-logo-mark:hover {
+  transform: scale(1.08);
 }
 
 .nav-logo-icon {
