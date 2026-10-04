@@ -1141,6 +1141,39 @@ img, video {
   color: var(--text-primary);
 }
 
+/* About & Contact Integration */
+.about-contact-wrap {
+  margin-top: 56px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.about-contact-intro {
+  max-width: 680px;
+  margin: 0 auto 32px;
+}
+
+.about-contact-title {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 4.5vw, 44px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.about-contact-subtitle {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.about-contact-wrap .footer-contact-pills {
+  margin-bottom: 0;
+}
+
 /* ---------------- Knowledge Base & Methodology ---------------- */
 .knowledge-section {
   padding: 80px 0 110px;
@@ -1244,7 +1277,7 @@ img, video {
 
 /* ---------------- Footer (Timeless Wordmark & Contact Grid) ---------------- */
 .site-footer {
-  padding: 120px 0 60px;
+  padding: 72px 0 60px;
   border-top: 1px solid var(--border-subtle);
   text-align: center;
   position: relative;
