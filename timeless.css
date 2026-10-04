@@ -1076,18 +1076,31 @@ img, video {
 /* QR Code Popovers */
 .qr-popover {
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 14px);
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   background: #ffffff;
-  padding: 12px;
+  padding: 14px;
+  width: 168px;
+  box-sizing: border-box;
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--border-subtle);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s, transform 0.25s;
-  z-index: 50;
+  transition: opacity 0.25s var(--ease-smooth), transform 0.25s var(--ease-smooth);
+  z-index: 999;
+}
+
+.qr-popover::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #ffffff transparent transparent transparent;
 }
 
 .contact-pill-btn:hover .qr-popover {
@@ -1097,17 +1110,22 @@ img, video {
 }
 
 .qr-popover img {
-  width: 140px;
-  height: 140px;
+  width: 140px !important;
+  height: 140px !important;
+  max-width: none !important;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
   border-radius: 6px;
   display: block;
+  margin: 0 auto;
 }
 
 .qr-popover-caption {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 8px;
   text-align: center;
+  white-space: nowrap;
 }
 
 /* Toast Message */
