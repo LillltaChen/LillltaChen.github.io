@@ -91,10 +91,12 @@
 
     .content-card { padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
     .tool-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border-radius: 14px; transition: background 0.3s; }
-    .tool-card:hover { background: rgba(255,255,255,0.03); }
-    .tool-matrix-img { width: 78px; height: 78px; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; display: block; margin: 0 auto; }
-    .tool-card:hover .tool-matrix-img { transform: scale(1.12); }
   </style>
+  <!-- Web Fonts & Timeless Design System -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../project-timeless.css">
 </head>
 <body class="bg-ds-bg text-ds-text antialiased">
 
@@ -106,7 +108,7 @@
       // ---------- 导航栏（最多 2 项） ----------
       nav: {
         logoText: '返回首页',
-        logoLink: '../../index.html#project-4',
+        logoLink: '../../index.html#work',
         links: [
           { text: '使用实例', href: '#section-gallery' },
           { text: '量化成果', href: '#section-stats' }
