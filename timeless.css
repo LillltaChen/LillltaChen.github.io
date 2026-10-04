@@ -909,6 +909,9 @@ img, video {
 
 .spotlight-cta-btn:hover {
   transform: scale(1.03);
+  background: #222222;
+}
+
 /* ---------------- About Profile Section (AIGC Visual Designer Positioning) ---------------- */
 .about-profile-section {
   padding: 90px 0 60px;
