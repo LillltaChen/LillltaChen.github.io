@@ -701,9 +701,6 @@ img, video {
   -webkit-user-select: none !important;
 }
 
-.rail-container.is-dragging .project-card-link {
-  pointer-events: none;
-}
 
 .rail-track,
 .rail-item,

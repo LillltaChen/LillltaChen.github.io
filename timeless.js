@@ -42,34 +42,35 @@ document.addEventListener('DOMContentLoaded', () => {
   if (railContainer) {
     let isDown = false;
     let startX = 0;
+    let startY = 0;
     let scrollStart = 0;
-    let hasDragged = false;
+    let draggedDistance = 0;
     let velocity = 0;
     let lastX = 0;
     let lastTime = 0;
     let momentumID = null;
 
-    // Prevent HTML5 native image / link dragging from interfering
+    // Prevent HTML5 native image / link dragging from interfering with smooth drag
     railContainer.addEventListener('dragstart', (e) => e.preventDefault());
 
-    // Intercept clicks on links if a real drag occurred
+    // Only intercept clicks if a genuine drag (> 8px) occurred!
     railContainer.addEventListener('click', (e) => {
-      if (hasDragged) {
+      if (draggedDistance > 8) {
         e.preventDefault();
         e.stopPropagation();
-        hasDragged = false;
+        draggedDistance = 0;
       }
-    }, true); // Use capture phase to intercept before <a> navigates
+    }, true); // Use capture phase so we intercept before <a> navigates if dragged
 
     railContainer.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return; // Only primary mouse button
       isDown = true;
-      hasDragged = false;
+      draggedDistance = 0;
       if (momentumID) cancelAnimationFrame(momentumID);
-      railContainer.classList.add('is-dragging');
       railContainer.classList.remove('is-gliding');
 
       startX = e.pageX;
+      startY = e.pageY;
       scrollStart = railContainer.scrollLeft;
       lastX = e.pageX;
       lastTime = performance.now();
@@ -79,10 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('mousemove', (e) => {
       if (!isDown) return;
       const x = e.pageX;
+      const y = e.pageY;
       const walk = x - startX;
+      draggedDistance = Math.hypot(x - startX, y - startY);
 
-      if (Math.abs(walk) > 6) {
-        hasDragged = true;
+      // Only enter drag state if moved more than 8 pixels
+      if (draggedDistance > 8) {
+        railContainer.classList.add('is-dragging');
       }
 
       const now = performance.now();
@@ -101,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       isDown = false;
       railContainer.classList.remove('is-dragging');
 
-      if (hasDragged && Math.abs(velocity) > 0.12) {
+      if (draggedDistance > 8 && Math.abs(velocity) > 0.12) {
         railContainer.classList.add('is-gliding');
         let currentVelocity = velocity * 16; // px per frame
         const friction = 0.94;
@@ -113,16 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
             momentumID = requestAnimationFrame(momentumStep);
           } else {
             railContainer.classList.remove('is-gliding');
-            setTimeout(() => {
-              hasDragged = false;
-            }, 60);
           }
         };
         momentumID = requestAnimationFrame(momentumStep);
-      } else {
-        setTimeout(() => {
-          hasDragged = false;
-        }, 60);
       }
     };
 
