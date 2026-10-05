@@ -183,6 +183,78 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(updateArrowStates, 320);
       });
     });
+
+    // Center a specific card in rail-container and scroll #work into view
+    function scrollToCard(targetCard, smooth = true) {
+      if (!targetCard || !railContainer) return;
+
+      // 1. Ensure target card is visible if filter was applied
+      if (targetCard.style.display === 'none') {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        const allTab = document.querySelector('.filter-tab[data-filter="all"]');
+        if (allTab) allTab.classList.add('active');
+        railItems.forEach(item => item.style.display = 'flex');
+      }
+
+      // 2. Vertically scroll to #work section
+      const workSection = document.getElementById('work');
+      if (workSection) {
+        if (typeof lenis !== 'undefined' && lenis) {
+          lenis.scrollTo(workSection, { offset: -30, duration: 0.9 });
+        } else {
+          workSection.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        }
+      }
+
+      // 3. Horizontally scroll the rail-container to center the card
+      setTimeout(() => {
+        const cardRect = targetCard.getBoundingClientRect();
+        const containerRect = railContainer.getBoundingClientRect();
+        const currentScrollLeft = railContainer.scrollLeft;
+        const cardCenterInContainer = (cardRect.left - containerRect.left) + currentScrollLeft + (cardRect.width / 2);
+        const targetScrollLeft = cardCenterInContainer - (containerRect.width / 2);
+
+        railContainer.scrollTo({
+          left: Math.max(0, targetScrollLeft),
+          behavior: smooth ? 'smooth' : 'auto'
+        });
+
+        // 4. Subtle brief focus highlight
+        targetCard.classList.add('card-target-focus');
+        setTimeout(() => {
+          targetCard.classList.remove('card-target-focus');
+        }, 2200);
+
+        setTimeout(updateArrowStates, 360);
+      }, 120);
+    }
+
+    // Auto-jump to card based on URL hash or query params
+    function checkUrlCardTarget() {
+      const rawHash = (window.location.hash || '').replace('#', '').trim();
+      const params = new URLSearchParams(window.location.search);
+      const cardParam = (params.get('card') || params.get('project') || '').trim();
+
+      const candidateKey = rawHash || cardParam;
+      if (!candidateKey) return;
+
+      const cleanKey = candidateKey.replace(/^card-/, '');
+      const targetCard = document.getElementById(`card-${cleanKey}`) ||
+                         document.getElementById(candidateKey) ||
+                         document.querySelector(`[data-project="${cleanKey}"]`);
+
+      if (targetCard) {
+        scrollToCard(targetCard, true);
+      }
+    }
+
+    // Check on page load, hashchange, and pageshow (bfcache)
+    setTimeout(checkUrlCardTarget, 200);
+    setTimeout(checkUrlCardTarget, 500);
+    window.addEventListener('hashchange', checkUrlCardTarget);
+    window.addEventListener('pageshow', () => {
+      setTimeout(checkUrlCardTarget, 200);
+    });
   }
 
   // 4. One-Click Copy with Toast Feedback

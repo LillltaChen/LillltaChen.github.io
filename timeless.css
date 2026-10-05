@@ -770,6 +770,26 @@ img, video {
   }
 }
 
+/* Card Focus Highlight when returning from subpage */
+@keyframes cardTargetPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+  35% {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 24px 48px -8px rgba(0, 0, 0, 0.16), 0 0 0 3px rgba(16, 16, 16, 0.85);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+}
+
+.rail-item.card-target-focus .card-media-box {
+  animation: cardTargetPulse 1.8s var(--spring-bouyant);
+}
+
 .card-media-box img,
 .card-media-box video {
   position: absolute;
