@@ -36,9 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = tiles.map(tile => {
       const img = tile.querySelector('img');
       const video = tile.querySelector('video');
-      const title = tile.querySelector('.gallery-title')?.textContent || '';
-      const tag = tile.querySelector('.gallery-tag')?.textContent || '';
-      const desc = tile.querySelector('.gallery-desc')?.textContent || '';
+      const title = tile.querySelector('.gallery-title')?.textContent || tile.getAttribute('data-title') || img?.alt || '';
+      const tag = tile.querySelector('.gallery-tag')?.textContent || tile.querySelector('.gallery-page-tag')?.textContent || tile.getAttribute('data-tag') || '';
+      const desc = tile.querySelector('.gallery-desc')?.textContent || tile.getAttribute('data-desc') || '';
       return {
         type: video ? 'video' : 'img',
         src: video ? (video.querySelector('source')?.src || video.src) : (img?.src || ''),
