@@ -41,33 +41,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (railContainer) {
     let isDown = false;
-    let startX;
-    let scrollLeft;
+    let startX = 0;
+    let scrollStart = 0;
+    let hasDragged = false;
+    let velocity = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let momentumID = null;
+
+    // Prevent HTML5 native image / link dragging from interfering
+    railContainer.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // Intercept clicks on links if a real drag occurred
+    railContainer.addEventListener('click', (e) => {
+      if (hasDragged) {
+        e.preventDefault();
+        e.stopPropagation();
+        hasDragged = false;
+      }
+    }, true); // Use capture phase to intercept before <a> navigates
 
     railContainer.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Only primary mouse button
       isDown = true;
+      hasDragged = false;
+      if (momentumID) cancelAnimationFrame(momentumID);
       railContainer.classList.add('is-dragging');
-      startX = e.pageX - railContainer.offsetLeft;
-      scrollLeft = railContainer.scrollLeft;
+      railContainer.classList.remove('is-gliding');
+
+      startX = e.pageX;
+      scrollStart = railContainer.scrollLeft;
+      lastX = e.pageX;
+      lastTime = performance.now();
+      velocity = 0;
     });
 
-    railContainer.addEventListener('mouseleave', () => {
-      isDown = false;
-      railContainer.classList.remove('is-dragging');
-    });
-
-    railContainer.addEventListener('mouseup', () => {
-      isDown = false;
-      railContainer.classList.remove('is-dragging');
-    });
-
-    railContainer.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', (e) => {
       if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - railContainer.offsetLeft;
-      const walk = (x - startX) * 1.5; // Scroll speed factor
-      railContainer.scrollLeft = scrollLeft - walk;
+      const x = e.pageX;
+      const walk = x - startX;
+
+      if (Math.abs(walk) > 6) {
+        hasDragged = true;
+      }
+
+      const now = performance.now();
+      const dt = now - lastTime;
+      if (dt > 8) {
+        velocity = (lastX - x) / dt; // pixels per ms
+        lastX = x;
+        lastTime = now;
+      }
+
+      railContainer.scrollLeft = scrollStart - walk;
     });
+
+    const stopDragging = () => {
+      if (!isDown) return;
+      isDown = false;
+      railContainer.classList.remove('is-dragging');
+
+      if (hasDragged && Math.abs(velocity) > 0.12) {
+        railContainer.classList.add('is-gliding');
+        let currentVelocity = velocity * 16; // px per frame
+        const friction = 0.94;
+
+        const momentumStep = () => {
+          if (Math.abs(currentVelocity) > 0.6) {
+            railContainer.scrollLeft += currentVelocity;
+            currentVelocity *= friction;
+            momentumID = requestAnimationFrame(momentumStep);
+          } else {
+            railContainer.classList.remove('is-gliding');
+            setTimeout(() => {
+              hasDragged = false;
+            }, 60);
+          }
+        };
+        momentumID = requestAnimationFrame(momentumStep);
+      } else {
+        setTimeout(() => {
+          hasDragged = false;
+        }, 60);
+      }
+    };
+
+    window.addEventListener('mouseup', stopDragging);
 
     // Arrow navigation
     if (prevBtn && nextBtn) {
