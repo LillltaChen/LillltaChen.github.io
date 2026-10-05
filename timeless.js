@@ -128,16 +128,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('mouseup', stopDragging);
 
-    // Arrow navigation
+    // Arrow navigation with dynamic step & state reflection
+    const getScrollStep = () => {
+      const card = railContainer.querySelector('.rail-item:not([style*="display: none"])') || railContainer.querySelector('.rail-item');
+      const track = railContainer.querySelector('.rail-track');
+      if (!card || !track) return 600;
+      const gap = parseFloat(window.getComputedStyle(track).gap) || 28;
+      return card.offsetWidth + gap;
+    };
+
+    const updateArrowStates = () => {
+      if (!prevBtn || !nextBtn) return;
+      const maxScroll = Math.max(0, railContainer.scrollWidth - railContainer.clientWidth - 5);
+      const isStart = railContainer.scrollLeft <= 5;
+      const isEnd = railContainer.scrollLeft >= maxScroll;
+
+      prevBtn.style.opacity = isStart ? '0.35' : '1';
+      prevBtn.style.pointerEvents = isStart ? 'none' : 'auto';
+      nextBtn.style.opacity = isEnd ? '0.35' : '1';
+      nextBtn.style.pointerEvents = isEnd ? 'none' : 'auto';
+    };
+
     if (prevBtn && nextBtn) {
       prevBtn.addEventListener('click', () => {
-        const cardWidth = railContainer.querySelector('.rail-item')?.offsetWidth || 500;
-        railContainer.scrollBy({ left: -cardWidth - 24, behavior: 'smooth' });
+        railContainer.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
       });
       nextBtn.addEventListener('click', () => {
-        const cardWidth = railContainer.querySelector('.rail-item')?.offsetWidth || 500;
-        railContainer.scrollBy({ left: cardWidth + 24, behavior: 'smooth' });
+        railContainer.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
       });
+
+      railContainer.addEventListener('scroll', updateArrowStates, { passive: true });
+      window.addEventListener('resize', updateArrowStates, { passive: true });
+      window.addEventListener('load', updateArrowStates, { passive: true });
+      updateArrowStates();
+      setTimeout(updateArrowStates, 300);
     }
 
     // Category Filter Tabs
@@ -157,8 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
             item.style.display = 'none';
           }
         });
-        // Scroll back to start
+        // Scroll back to center of first visible card
         railContainer.scrollTo({ left: 0, behavior: 'smooth' });
+        setTimeout(updateArrowStates, 320);
       });
     });
   }
