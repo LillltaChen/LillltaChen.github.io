@@ -842,94 +842,22 @@
     }
 
     /* ---------------- Next Project Navigation Footer ---------------- */
+    .site-footer,
     .project-nav-footer {
       border-top: 1px solid var(--border-subtle);
-      padding: 50px 0 70px;
-      margin-top: 40px;
-    }
-
-    .project-nav-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 48px;
-    }
-
-    .next-project-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 560px;
-      gap: 20px;
-      padding: 20px 28px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-      text-decoration: none;
-      text-align: left;
-      transition: transform 0.45s var(--spring-bouyant), border-color 0.2s, box-shadow 0.3s;
-    }
-
-    .next-project-link:hover {
-      transform: translateY(-3px) scale(1.015);
-      border-color: var(--border-medium);
-      box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.08);
-    }
-
-    .next-project-label {
-      font-size: 11.5px;
-      color: var(--text-tertiary);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 550;
-      margin-bottom: 4px;
-    }
-
-    .next-project-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
-    }
-
-    .next-project-arrow {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-full);
-      background: var(--bg-subtle);
-      font-size: 18px;
-      color: var(--text-primary);
-      transition: transform 0.3s var(--ease-smooth), background-color 0.2s, color 0.2s;
-      flex-shrink: 0;
-    }
-
-    .next-project-link:hover .next-project-arrow {
-      transform: translate(3px, -3px);
-      background: var(--text-primary);
-      color: #ffffff;
+      padding: 36px 0 48px;
+      margin-top: 60px;
     }
 
     .site-footer-bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border-subtle);
       font-size: 12.5px;
       color: var(--text-tertiary);
     }
 
     @media (max-width: 640px) {
-      .project-nav-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
       .site-footer-bottom {
         flex-direction: column;
         gap: 10px;
@@ -1282,18 +1210,8 @@
       <div class="quote-author">Methodology &amp; Philosophy · 陈楠 Chen Nan</div>
     </div>
 
-    <!-- 06. Next Project Navigation Footer -->
-    <footer class="project-nav-footer">
-      <div class="project-nav-row">
-        <a href="../小红书图文视觉工坊 Skill/小红书图文视觉工坊技能.html" class="next-project-link">
-          <div>
-            <div class="next-project-label">Next Case · 下一个案例</div>
-            <div class="next-project-title">小红书图文视觉工坊 Skill</div>
-          </div>
-          <span class="next-project-arrow">↗</span>
-        </a>
-      </div>
-
+    <!-- Footer -->
+    <footer class="site-footer">
       <div class="site-footer-bottom">
         <div>Chen Nan · AI Visual Designer &amp; Workflow Architect</div>
         <div>Designed with Timeless Warm Editorial Aesthetics</div>
