@@ -942,9 +942,9 @@ img, video {
 /* Fan-out Deck of Cards */
 .fan-deck {
   position: relative;
-  height: 280px;
+  height: 330px;
   margin: 0 auto 48px;
-  max-width: 600px;
+  max-width: 680px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -953,8 +953,9 @@ img, video {
 .fan-card {
   display: block;
   position: absolute;
-  width: 200px;
-  height: 240px;
+  width: 216px;
+  height: 288px;
+  aspect-ratio: 3 / 4;
   background: #fff;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
@@ -965,37 +966,58 @@ img, video {
 }
 
 .fan-card:hover {
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.16);
   z-index: 10 !important;
 }
 
 .fan-card video, .fan-card img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  display: block;
 }
 
 .fan-card-1 {
-  transform: translateX(-140px) rotate(-12deg);
+  transform: translateX(-155px) rotate(-12deg);
   z-index: 1;
 }
 .fan-card-2 {
-  transform: translateX(-50px) rotate(-4deg);
+  transform: translateX(-52px) rotate(-4deg);
   z-index: 2;
 }
 .fan-card-3 {
-  transform: translateX(50px) rotate(4deg);
+  transform: translateX(52px) rotate(4deg);
   z-index: 3;
 }
 .fan-card-4 {
-  transform: translateX(140px) rotate(12deg);
+  transform: translateX(155px) rotate(12deg);
   z-index: 4;
 }
 
-.spotlight-wrapper:hover .fan-card-1 { transform: translateX(-160px) rotate(-16deg); }
-.spotlight-wrapper:hover .fan-card-2 { transform: translateX(-60px) rotate(-6deg); }
-.spotlight-wrapper:hover .fan-card-3 { transform: translateX(60px) rotate(6deg); }
-.spotlight-wrapper:hover .fan-card-4 { transform: translateX(160px) rotate(16deg); }
+.spotlight-wrapper:hover .fan-card-1 { transform: translateX(-180px) rotate(-16deg); }
+.spotlight-wrapper:hover .fan-card-2 { transform: translateX(-62px) rotate(-6deg); }
+.spotlight-wrapper:hover .fan-card-3 { transform: translateX(62px) rotate(6deg); }
+.spotlight-wrapper:hover .fan-card-4 { transform: translateX(180px) rotate(16deg); }
+
+@media (max-width: 640px) {
+  .fan-deck {
+    height: 260px;
+    margin-bottom: 32px;
+  }
+  .fan-card {
+    width: 156px;
+    height: 208px;
+  }
+  .fan-card-1 { transform: translateX(-105px) rotate(-12deg); }
+  .fan-card-2 { transform: translateX(-35px) rotate(-4deg); }
+  .fan-card-3 { transform: translateX(35px) rotate(4deg); }
+  .fan-card-4 { transform: translateX(105px) rotate(12deg); }
+
+  .spotlight-wrapper:hover .fan-card-1 { transform: translateX(-120px) rotate(-15deg); }
+  .spotlight-wrapper:hover .fan-card-2 { transform: translateX(-40px) rotate(-5deg); }
+  .spotlight-wrapper:hover .fan-card-3 { transform: translateX(40px) rotate(5deg); }
+  .spotlight-wrapper:hover .fan-card-4 { transform: translateX(120px) rotate(15deg); }
+}
 
 .spotlight-cta-btn {
   display: inline-flex;
