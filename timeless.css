@@ -953,9 +953,9 @@ img, video {
 .fan-card {
   display: block;
   position: absolute;
-  width: 216px;
-  height: 288px;
-  aspect-ratio: 3 / 4;
+  width: 220px;
+  height: 289px;
+  aspect-ratio: 1024 / 1344;
   background: #fff;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
