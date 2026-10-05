@@ -816,7 +816,7 @@ img, video {
 .project-nav-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   margin-bottom: 40px;
 }
