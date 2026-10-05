@@ -979,6 +979,23 @@ img, video {
   pointer-events: none;
 }
 
+/* 3D Specular Holographic Glare Layer */
+.card-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: inherit;
+  z-index: 6;
+  mix-blend-mode: overlay;
+  transition: opacity 0.35s ease;
+  will-change: background, opacity;
+}
+
+.fan-card:hover .card-glare {
+  opacity: 1;
+}
+
 /* 初始扇面角度 */
 .fan-card-1 {
   transform: translateX(-155px) rotate(-11deg);
