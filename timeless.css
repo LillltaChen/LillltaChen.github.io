@@ -36,9 +36,9 @@
   --radius-xl: 24px;
   --radius-pill: 9999px;
 
-  --card-width-desktop: clamp(580px, 54vw, 840px);
-  --card-width-tablet: clamp(480px, 68vw, 620px);
-  --card-width-mobile: 74vw;
+  --card-width-desktop: clamp(460px, 40vw, 620px);
+  --card-width-tablet: clamp(400px, 62vw, 560px);
+  --card-width-mobile: 78vw;
   --card-width: var(--card-width-desktop);
   --rail-gap: 28px;
 }
