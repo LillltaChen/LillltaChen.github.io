@@ -422,7 +422,7 @@ img, video {
 
 .manifesto-text {
   font-family: var(--font-sans);
-  font-size: clamp(19px, 2.2vw, 26px);
+  font-size: clamp(21px, 2.6vw, 32px);
   line-height: 1.62;
   font-weight: 350;
   letter-spacing: -0.015em;
