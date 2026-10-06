@@ -388,40 +388,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Pointer Dragging Interaction
-    carTrack.addEventListener('pointerdown', (e) => {
-      cancelAnimationFrame(animFrame);
-      isDragging = true;
-      startX = e.clientX;
-      startTurn = turn;
-      lastX = e.clientX;
-      lastTime = e.timeStamp;
-      vx = 0;
-      carTrack.setAttribute('data-held', 'true');
-      try { carTrack.setPointerCapture(e.pointerId); } catch (err) {}
-    });
+    let hasMoved = false;
 
-    carTrack.addEventListener('pointermove', (e) => {
+    carTrack.addEventListener('dragstart', (e) => e.preventDefault());
+
+    function onPointerMove(e) {
       if (!isDragging) return;
       const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) {
+        hasMoved = true;
+      }
       const dt = Math.max(1, e.timeStamp - lastTime);
       vx = (vx + (e.clientX - lastX) / dt) / 2;
       lastX = e.clientX;
       lastTime = e.timeStamp;
       turn = startTurn - dx / PULL;
       updatePositions();
-    });
+    }
 
-    function endDrag() {
+    function onPointerUp() {
       if (!isDragging) return;
       isDragging = false;
       carTrack.removeAttribute('data-held');
-      const fling = Math.max(-2, Math.min(2, -vx * 150 / PULL));
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      const fling = Math.max(-2, Math.min(2, -vx * 160 / PULL));
       const targetTurn = Math.round(turn + fling);
       animateTo(targetTurn);
     }
 
-    carTrack.addEventListener('pointerup', endDrag);
-    carTrack.addEventListener('pointercancel', endDrag);
+    carTrack.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      cancelAnimationFrame(animFrame);
+      isDragging = true;
+      hasMoved = false;
+      startX = e.clientX;
+      startTurn = turn;
+      lastX = e.clientX;
+      lastTime = e.timeStamp;
+      vx = 0;
+      carTrack.setAttribute('data-held', 'true');
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+    });
+
+    // Prevent link click when user dragged
+    carTrack.addEventListener('click', (e) => {
+      if (hasMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
 
     // Keyboard Arrow Keys
     carTrack.addEventListener('keydown', (e) => {

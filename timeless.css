@@ -953,6 +953,8 @@ img, video {
   width: 520px;
   height: 380px;
   margin: 0 auto;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .car-track {
@@ -961,6 +963,9 @@ img, video {
   position: absolute;
   inset: 0;
   outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
 .car-track[data-held="true"] {
