@@ -1663,10 +1663,19 @@ img, video {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.contact-pill-btn svg {
+.contact-pill-btn svg,
+.contact-pill-btn .contact-pill-icon {
   width: 16px;
   height: 16px;
-  opacity: 0.7;
+  opacity: 0.75;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.contact-pill-btn:hover svg,
+.contact-pill-btn:hover .contact-pill-icon {
+  opacity: 1;
 }
 
 /* QR Code Popovers */
