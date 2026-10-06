@@ -523,6 +523,23 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePositions();
   }
 
+  // Nav anchor smooth scroll via Lenis (bypass native jump + hashchange conflicts)
+  document.querySelectorAll('.nav-link-item a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href');
+      if (!href || href === '#') return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      if (lenis) {
+        lenis.scrollTo(target, { offset: -80, duration: 1.1 });
+      } else {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      history.pushState(null, '', href);
+    });
+  });
+
   // Footer back-to-top (prefers Lenis when available)
   document.querySelectorAll('.footer-back-to-top').forEach(btn => {
     btn.addEventListener('click', (e) => {
