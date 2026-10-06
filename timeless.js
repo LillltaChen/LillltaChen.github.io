@@ -522,34 +522,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial positioning
     updatePositions();
   }
-
-  // Rail Project Cards: Surface Sink & Specular Sheen
-  if (window.matchMedia('(hover: hover)').matches) {
-    const railCards = document.querySelectorAll('.card-media-box');
-    railCards.forEach((box) => {
-      const sheen = box.querySelector('.card-sheen');
-      const MAX_TILT = 4; // degrees, subtler than carousel (cards are larger)
-
-      box.addEventListener('pointermove', (e) => {
-        const rect = box.getBoundingClientRect();
-        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-        const rx = (-ny * MAX_TILT).toFixed(2);
-        const ry = (nx * MAX_TILT).toFixed(2);
-        box.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(-4px)`;
-
-        if (sheen) {
-          const sx = (((nx + 1) / 2) * 100).toFixed(1);
-          const sy = (((ny + 1) / 2) * 100).toFixed(1);
-          sheen.style.backgroundImage = `radial-gradient(circle at ${sx}% ${sy}%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.15) 35%, transparent 65%)`;
-          sheen.style.opacity = '1';
-        }
-      });
-
-      box.addEventListener('pointerleave', () => {
-        box.style.transform = '';
-        if (sheen) sheen.style.opacity = '0';
-      });
-    });
-  }
 });
