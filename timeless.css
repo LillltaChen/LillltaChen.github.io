@@ -1376,6 +1376,47 @@ img, video {
   color: var(--text-primary);
 }
 
+/* Compact Wiki Reading Links */
+.wiki-compact-row {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.wiki-compact-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.wiki-compact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.wiki-compact-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+}
+
+.wiki-compact-links a:hover {
+  opacity: 1;
+}
+
 /* About & Contact Integration */
 .about-contact-wrap {
   margin-top: 56px;
