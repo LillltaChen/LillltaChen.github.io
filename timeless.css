@@ -1303,6 +1303,7 @@ img, video {
 .capabilities-header {
   margin-bottom: 36px;
   max-width: 800px;
+  scroll-margin-top: 100px;
 }
 
 .capabilities-label-wrap {
