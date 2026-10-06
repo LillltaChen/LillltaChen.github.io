@@ -416,23 +416,23 @@ img, video {
 
 /* ---------------- Editorial Manifesto Statement ---------------- */
 .manifesto-section {
-  padding: 100px 0 70px;
+  padding: 80px 0 60px;
   text-align: center;
 }
 
 .manifesto-text {
   font-family: var(--font-sans);
-  font-size: clamp(22px, 3.4vw, 36px);
-  line-height: 1.48;
+  font-size: clamp(19px, 2.2vw, 26px);
+  line-height: 1.62;
   font-weight: 350;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   color: var(--text-primary);
-  max-width: 740px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
 .manifesto-text strong {
-  font-weight: 550;
+  font-weight: 600;
   color: #101010;
 }
 
