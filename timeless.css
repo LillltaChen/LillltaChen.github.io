@@ -1151,7 +1151,7 @@ img, video {
 
 /* ---------------- About Profile Section (AIGC Visual Designer Positioning) ---------------- */
 .about-profile-section {
-  padding: 90px 0 60px;
+  padding: 40px 0 60px;
   position: relative;
   scroll-margin-top: 100px;
 }
