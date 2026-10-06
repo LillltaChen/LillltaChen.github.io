@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const x = Math.sin(theta) * orbit;
         const y = -(1 - f) * 30; // back of ring rides up
         const scale = 0.54 + 0.46 * f; // backScale 0.54 to 1
-        const zIndex = Math.round(f * 100);
+        const zIndex = Math.round(f * 50);
         const opacity = (0.32 + 0.68 * f).toFixed(3);
         const tilt = naturalTilts[i % naturalTilts.length];
 
