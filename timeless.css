@@ -175,12 +175,21 @@ img, video {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 4px 2px 2px;
+  padding: 1px 4px 1px 2px;
   transition: transform 0.2s var(--ease-smooth);
 }
 
 .nav-logo-mark:hover {
   transform: scale(1.08);
+}
+
+.nav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .nav-logo-icon {
@@ -257,6 +266,7 @@ img, video {
   .nav-status { display: none; }
   .site-nav-inner { padding: 5px 8px; gap: 4px; }
   .nav-link-item a { padding: 5px 8px; font-size: 12.5px; }
+  .nav-avatar { width: 25px; height: 25px; }
 }
 
 /* ---------------- Hero Section (Timeless Signature) ---------------- */
