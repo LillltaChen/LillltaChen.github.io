@@ -316,16 +316,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeTag = document.getElementById('carActiveTag');
 
     const carouselItems = [
-      { title: '华为 MatePad Pro 极简光影主视觉', tag: '3C 科技数码' },
-      { title: '现烤流心可颂 商业字体排印海报', tag: '快消商业爆款' },
-      { title: '水温22°C 千岛湖桨板运动视觉', tag: '潮流户外生活' },
-      { title: '奇多 Cheetos 四格野性之旅插画', tag: '品牌创意插画' }
+      { title: '索尼 WH-1000XM5 世界静音大片', tag: '3C 影音数码' },
+      { title: '霸王茶姬 伯牙绝弦商业主视觉', tag: '新茶饮爆款' },
+      { title: '任天堂 Switch 3D 创意全案', tag: '游戏泛娱乐' },
+      { title: '山崎 Yamazaki 1923 高端商业摄影', tag: '洋酒典藏' },
+      { title: '贵州茅台酒 传统工笔四格全案', tag: '国酒文化' },
+      { title: '奇多 Cheetos 四格野性之旅插画', tag: '品牌创意插画' },
+      { title: '宋凰茶礼 一叶知秋新中式包装', tag: '东方茶礼美学' }
     ];
 
     const numCards = slots.length;
-    const naturalTilts = [-3.8, 2.4, -1.8, 3.2];
-    const PULL = 140; // drag resistance
-    let orbit = window.innerWidth <= 640 ? 105 : 155;
+    const naturalTilts = [-4.2, 2.6, -1.8, 3.8, -2.5, 3.1, -1.5];
+    const PULL = 130; // drag resistance
+    let orbit = window.innerWidth <= 640 ? 115 : 175;
     let turn = 0;
     let animFrame = null;
     let isDragging = false;
