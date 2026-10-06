@@ -1489,7 +1489,6 @@ img, video {
 /* ---------------- Footer (Timeless Wordmark & Contact Grid) ---------------- */
 .site-footer {
   padding: 72px 0 60px;
-  border-top: 1px solid var(--border-subtle);
   text-align: center;
   position: relative;
 }
