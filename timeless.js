@@ -306,43 +306,172 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 6. Bencho.dev Fluid Gaussian Image Accordion (open=100, reach=45, bounce=25)
-  const accordion = document.getElementById('imageAccordion');
-  if (accordion) {
-    const cells = accordion.querySelectorAll('.acc-cell');
-    const s = 0.755;    // reach = 45 -> Gaussian bandwidth
-    const lift = 3.8;   // open = 100 -> ~58% active width for 4 cards
+  // 6. Bencho.dev 3D Card Carousel (Turntable Ring Carousel)
+  const carTrack = document.querySelector('#turntableCarousel .car-track');
+  if (carTrack) {
+    const slots = carTrack.querySelectorAll('.car-slot');
+    const prevBtn = document.querySelector('.car-arrow-prev');
+    const nextBtn = document.querySelector('.car-arrow-next');
+    const activeTitle = document.getElementById('carActiveTitle');
+    const activeTag = document.getElementById('carActiveTag');
 
-    function setActiveIndex(activeIndex) {
-      if (activeIndex === null) {
-        cells.forEach(cell => {
-          cell.style.flexGrow = '1';
-          cell.removeAttribute('data-active');
-        });
-        return;
-      }
+    const carouselItems = [
+      { title: '华为 MatePad Pro 极简光影主视觉', tag: '3C 科技数码' },
+      { title: '现烤流心可颂 商业字体排印海报', tag: '快消商业爆款' },
+      { title: '水温22°C 千岛湖桨板运动视觉', tag: '潮流户外生活' },
+      { title: '奇多 Cheetos 四格野性之旅插画', tag: '品牌创意插画' }
+    ];
 
-      cells.forEach((cell, idx) => {
-        const d = Math.abs(idx - activeIndex);
-        const fall = Math.exp(-Math.pow(d / s, 2));
-        const grow = 1 + lift * fall;
-        cell.style.flexGrow = grow.toFixed(3);
-        if (idx === activeIndex) {
-          cell.setAttribute('data-active', 'true');
-        } else {
-          cell.setAttribute('data-active', 'false');
-        }
+    const numCards = slots.length;
+    const naturalTilts = [-3.8, 2.4, -1.8, 3.2];
+    const PULL = 140; // drag resistance
+    let orbit = window.innerWidth <= 640 ? 105 : 155;
+    let turn = 0;
+    let animFrame = null;
+    let isDragging = false;
+    let startX = 0;
+    let startTurn = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let vx = 0;
+
+    window.addEventListener('resize', () => {
+      orbit = window.innerWidth <= 640 ? 105 : 155;
+      updatePositions();
+    });
+
+    function updatePositions() {
+      slots.forEach((slot, i) => {
+        const theta = (i - turn) * (Math.PI * 2 / numCards);
+        const f = (Math.cos(theta) + 1) / 2; // 1 front, 0 back
+        const x = Math.sin(theta) * orbit;
+        const y = -(1 - f) * 36; // back of ring rides up
+        const scale = 0.52 + 0.48 * f; // backScale 0.52 to 1
+        const zIndex = Math.round(f * 100);
+        const tilt = naturalTilts[i % naturalTilts.length];
+
+        slot.style.transform = `translate(-50%, -50%) translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${tilt}deg) scale(${scale.toFixed(4)})`;
+        slot.style.zIndex = String(zIndex);
       });
+
+      // Update metadata text
+      let activeIndex = Math.round(turn) % numCards;
+      if (activeIndex < 0) activeIndex += numCards;
+      if (activeTitle && activeTag && carouselItems[activeIndex]) {
+        activeTitle.textContent = carouselItems[activeIndex].title;
+        activeTag.textContent = carouselItems[activeIndex].tag;
+      }
     }
 
-    cells.forEach((cell, idx) => {
-      cell.addEventListener('pointerenter', () => {
-        setActiveIndex(idx);
+    function animateTo(target) {
+      cancelAnimationFrame(animFrame);
+      const startTurnVal = turn;
+      const diff = target - startTurnVal;
+      const duration = 520;
+      const startTime = performance.now();
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const ease = 1 - Math.pow(1 - progress, 4); // quartic ease-out
+        turn = startTurnVal + diff * ease;
+        updatePositions();
+
+        if (progress < 1) {
+          animFrame = requestAnimationFrame(step);
+        } else {
+          turn = target;
+          updatePositions();
+        }
+      }
+      animFrame = requestAnimationFrame(step);
+    }
+
+    // Pointer Dragging Interaction
+    carTrack.addEventListener('pointerdown', (e) => {
+      cancelAnimationFrame(animFrame);
+      isDragging = true;
+      startX = e.clientX;
+      startTurn = turn;
+      lastX = e.clientX;
+      lastTime = e.timeStamp;
+      vx = 0;
+      carTrack.setAttribute('data-held', 'true');
+      try { carTrack.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    carTrack.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dt = Math.max(1, e.timeStamp - lastTime);
+      vx = (vx + (e.clientX - lastX) / dt) / 2;
+      lastX = e.clientX;
+      lastTime = e.timeStamp;
+      turn = startTurn - dx / PULL;
+      updatePositions();
+    });
+
+    function endDrag() {
+      if (!isDragging) return;
+      isDragging = false;
+      carTrack.removeAttribute('data-held');
+      const fling = Math.max(-2, Math.min(2, -vx * 150 / PULL));
+      const targetTurn = Math.round(turn + fling);
+      animateTo(targetTurn);
+    }
+
+    carTrack.addEventListener('pointerup', endDrag);
+    carTrack.addEventListener('pointercancel', endDrag);
+
+    // Keyboard Arrow Keys
+    carTrack.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        animateTo(Math.round(turn) + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        animateTo(Math.round(turn) - 1);
+      }
+    });
+
+    // Arrow Buttons
+    prevBtn?.addEventListener('click', () => {
+      animateTo(Math.round(turn) - 1);
+    });
+    nextBtn?.addEventListener('click', () => {
+      animateTo(Math.round(turn) + 1);
+    });
+
+    // Card Hover Sink & Sheen (bencho.dev qg function)
+    const cards = carTrack.querySelectorAll('.car-card');
+    cards.forEach((card) => {
+      const sheen = card.querySelector('.car-sheen');
+      card.addEventListener('pointermove', (e) => {
+        if (isDragging) return;
+        const rect = card.getBoundingClientRect();
+        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+        const rx = (-ny * 6.5).toFixed(2);
+        const ry = (nx * 6.5).toFixed(2);
+        card.style.transform = `perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(-4px)`;
+
+        if (sheen) {
+          const sx = (((nx + 1) / 2) * 100).toFixed(1);
+          const sy = (((ny + 1) / 2) * 100).toFixed(1);
+          sheen.style.backgroundImage = `radial-gradient(circle at ${sx}% ${sy}%, rgba(255, 255, 255, 0.4) 0%, transparent 65%)`;
+          sheen.style.opacity = '1';
+        }
+      });
+
+      card.addEventListener('pointerleave', () => {
+        card.style.transform = '';
+        if (sheen) {
+          sheen.style.opacity = '0';
+        }
       });
     });
 
-    accordion.addEventListener('pointerleave', () => {
-      setActiveIndex(null);
-    });
+    // Initial positioning
+    updatePositions();
   }
 });
