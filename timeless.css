@@ -1252,31 +1252,20 @@ img, video {
 }
 
 .cap-card {
-  background: #f0ebe3;
+  background: #fff;
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   padding: 36px 32px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 280px;
-  position: relative;
-  overflow: hidden;
+  min-height: 260px;
   transition: transform 0.5s var(--spring-bouyant), box-shadow 0.4s ease;
 }
 
 .cap-card:hover {
   transform: scale(1.025);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.08);
-}
-
-.cap-card::before {
-  content: '';
-  position: absolute;
-  top: 20px;
-  right: 24px;
-  width: 40px;
-  height: 1px;
-  background: rgba(0,0,0,0.15);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.06);
 }
 
 .cap-num {
