@@ -922,14 +922,6 @@ img, video {
   font-weight: 400;
 }
 
-.quote-author {
-  font-size: 12.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-tertiary);
-  font-weight: 600;
-}
-
 /* ---------------- Project Navigation Footer ---------------- */
 .project-nav-footer {
   border-top: 1px solid var(--border-subtle);
