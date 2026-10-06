@@ -687,12 +687,13 @@ img, video {
   padding: 14px calc(50vw - (var(--card-width) / 2)) 44px;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  scroll-behavior: auto;
 }
 
 .rail-container::-webkit-scrollbar {
@@ -709,6 +710,14 @@ img, video {
   cursor: grabbing !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+}
+
+/* Disable card tilt/sheen while dragging the rail (avoid event fight) */
+.rail-container.is-dragging .card-media-box {
+  transform: none !important;
+}
+.rail-container.is-dragging .card-sheen {
+  opacity: 0 !important;
 }
 
 

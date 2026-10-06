@@ -49,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastX = 0;
     let lastTime = 0;
     let momentumID = null;
+    let rafID = null;
+    let pendingWalk = 0;
+    // Velocity history for smoother fling
+    let velocitySamples = [];
 
     // Prevent HTML5 native image / link dragging from interfering with smooth drag
     railContainer.addEventListener('dragstart', (e) => e.preventDefault());
@@ -66,7 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.button !== 0) return; // Only primary mouse button
       isDown = true;
       draggedDistance = 0;
+      velocitySamples = [];
       if (momentumID) cancelAnimationFrame(momentumID);
+      if (rafID) cancelAnimationFrame(rafID);
       railContainer.classList.remove('is-gliding');
 
       startX = e.pageX;
@@ -76,6 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
       lastTime = performance.now();
       velocity = 0;
     });
+
+    const applyScroll = () => {
+      railContainer.scrollLeft = scrollStart - pendingWalk;
+      rafID = null;
+    };
 
     window.addEventListener('mousemove', (e) => {
       if (!isDown) return;
@@ -89,29 +100,36 @@ document.addEventListener('DOMContentLoaded', () => {
         railContainer.classList.add('is-dragging');
       }
 
+      // Track velocity (px per ms) with small rolling window for stable fling
       const now = performance.now();
       const dt = now - lastTime;
-      if (dt > 8) {
-        velocity = (lastX - x) / dt; // pixels per ms
+      if (dt > 4) {
+        const v = (lastX - x) / dt;
+        velocitySamples.push(v);
+        if (velocitySamples.length > 5) velocitySamples.shift();
+        velocity = velocitySamples.reduce((a, b) => a + b, 0) / velocitySamples.length;
         lastX = x;
         lastTime = now;
       }
 
-      railContainer.scrollLeft = scrollStart - walk;
+      // Write scrollLeft once per frame, not per mousemove event
+      pendingWalk = walk;
+      if (!rafID) rafID = requestAnimationFrame(applyScroll);
     });
 
     const stopDragging = () => {
       if (!isDown) return;
       isDown = false;
+      if (rafID) { cancelAnimationFrame(rafID); rafID = null; }
       railContainer.classList.remove('is-dragging');
 
-      if (draggedDistance > 8 && Math.abs(velocity) > 0.12) {
+      if (draggedDistance > 8 && Math.abs(velocity) > 0.08) {
         railContainer.classList.add('is-gliding');
         let currentVelocity = velocity * 16; // px per frame
-        const friction = 0.94;
+        const friction = 0.955;
 
         const momentumStep = () => {
-          if (Math.abs(currentVelocity) > 0.6) {
+          if (Math.abs(currentVelocity) > 0.4) {
             railContainer.scrollLeft += currentVelocity;
             currentVelocity *= friction;
             momentumID = requestAnimationFrame(momentumStep);
@@ -124,6 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.addEventListener('mouseup', stopDragging);
+    window.addEventListener('mouseleave', stopDragging);
+    window.addEventListener('blur', stopDragging);
 
     // Arrow navigation with dynamic step & state reflection
     const getScrollStep = () => {
