@@ -1237,6 +1237,14 @@ img, video {
 }
 
 /* Capabilities Row (plain columns, no cards) */
+.about-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 64px 48px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.03);
+}
+
 .about-section-title {
   font-family: var(--font-serif);
   font-size: clamp(36px, 5vw, 56px);
