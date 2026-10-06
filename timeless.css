@@ -684,7 +684,7 @@ img, video {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   box-sizing: border-box;
-  padding: 14px calc(50vw - (var(--card-width) / 2)) 44px;
+  padding: 14px 5vw 44px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x proximity;
