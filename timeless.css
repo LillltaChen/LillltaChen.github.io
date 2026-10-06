@@ -217,18 +217,18 @@ img, video {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   list-style: none;
 }
 
 .nav-link-item a {
   display: block;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: var(--radius-pill);
   font-size: 13.5px;
   font-weight: 450;
   color: var(--text-secondary);
-  transition: color 0.2s, background-color 0.2s;
+  transition: color 0.12s, background-color 0.12s;
 }
 
 .nav-link-item a:hover {
@@ -264,8 +264,8 @@ img, video {
 
 @media (max-width: 640px) {
   .nav-status { display: none; }
-  .site-nav-inner { padding: 5px 8px; gap: 4px; }
-  .nav-link-item a { padding: 5px 8px; font-size: 12.5px; }
+  .site-nav-inner { padding: 6px 10px; gap: 5px; }
+  .nav-link-item a { padding: 7px 10px; font-size: 12.5px; }
   .nav-avatar { width: 25px; height: 25px; }
 }
 
