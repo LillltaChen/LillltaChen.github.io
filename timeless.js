@@ -306,62 +306,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 6. Cutting-Edge 3D Holographic Tilt & Specular Glare (Apple TV / Linear / Raycast style)
-  const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  if (isFinePointer) {
-    const fanCards = document.querySelectorAll('.fan-card');
-    fanCards.forEach((card) => {
-      const glare = card.querySelector('.card-glare');
-      let rect = null;
-      let rafId = null;
+  // 6. Bencho.dev Fluid Gaussian Image Accordion (open=100, reach=45, bounce=25)
+  const accordion = document.getElementById('imageAccordion');
+  if (accordion) {
+    const cells = accordion.querySelectorAll('.acc-cell');
+    const s = 0.755;    // reach = 45 -> Gaussian bandwidth
+    const lift = 3.8;   // open = 100 -> ~58% active width for 4 cards
 
-      const cardIndex = card.classList.contains('fan-card-1') ? 1 :
-                        card.classList.contains('fan-card-2') ? 2 :
-                        card.classList.contains('fan-card-3') ? 3 : 4;
-      const baseOffset = cardIndex === 1 ? -175 :
-                         cardIndex === 2 ? -52 :
-                         cardIndex === 3 ? 52 : 175;
-
-      card.addEventListener('mouseenter', () => {
-        rect = card.getBoundingClientRect();
-        card.style.transition = 'transform 0.08s ease-out, box-shadow 0.2s ease-out, opacity 0.35s ease';
-      });
-
-      card.addEventListener('mousemove', (e) => {
-        if (!rect) rect = card.getBoundingClientRect();
-        const clientX = e.clientX;
-        const clientY = e.clientY;
-
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => {
-          const x = clientX - rect.left;
-          const y = clientY - rect.top;
-          const xPct = (x / rect.width) - 0.5; // -0.5 to 0.5
-          const yPct = (y / rect.height) - 0.5;
-
-          // 3D tilt angles
-          const tiltX = (-yPct * 18).toFixed(2);
-          const tiltY = (xPct * 18).toFixed(2);
-          const glareX = ((x / rect.width) * 100).toFixed(1);
-          const glareY = ((y / rect.height) * 100).toFixed(1);
-
-          card.style.transform = `translateX(${baseOffset}px) translateY(-26px) perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.08)`;
-
-          if (glare) {
-            glare.style.background = `radial-gradient(circle 280px at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.2) 40%, transparent 75%)`;
-          }
+    function setActiveIndex(activeIndex) {
+      if (activeIndex === null) {
+        cells.forEach(cell => {
+          cell.style.flexGrow = '1';
+          cell.removeAttribute('data-active');
         });
-      });
+        return;
+      }
 
-      card.addEventListener('mouseleave', () => {
-        if (rafId) cancelAnimationFrame(rafId);
-        rect = null;
-        card.style.transition = 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
-        card.style.transform = '';
-        if (glare) {
-          glare.style.background = '';
+      cells.forEach((cell, idx) => {
+        const d = Math.abs(idx - activeIndex);
+        const fall = Math.exp(-Math.pow(d / s, 2));
+        const grow = 1 + lift * fall;
+        cell.style.flexGrow = grow.toFixed(3);
+        if (idx === activeIndex) {
+          cell.setAttribute('data-active', 'true');
+        } else {
+          cell.setAttribute('data-active', 'false');
         }
       });
+    }
+
+    cells.forEach((cell, idx) => {
+      cell.addEventListener('pointerenter', () => {
+        setActiveIndex(idx);
+      });
+    });
+
+    accordion.addEventListener('pointerleave', () => {
+      setActiveIndex(null);
     });
   }
 });
