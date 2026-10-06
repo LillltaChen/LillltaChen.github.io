@@ -1279,6 +1279,22 @@ img, video {
   color: var(--text-secondary);
 }
 
+.capabilities-quote {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.02);
+  border-left: 2px solid #101010;
+  padding: 12px 18px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-top: 16px;
+}
+
+.capabilities-quote strong {
+  color: var(--text-primary);
+  font-weight: 550;
+}
+
 .capabilities-cards {
   display: grid;
   grid-template-columns: 1fr;
