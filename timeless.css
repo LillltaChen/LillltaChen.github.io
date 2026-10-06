@@ -565,7 +565,7 @@ img, video {
 
 /* ---------------- Selected Work (Horizontal Blossom Rail) ---------------- */
 .work-section {
-  padding: 60px 0 110px;
+  padding: 60px 0 40px;
   position: relative;
   scroll-margin-top: 100px;
 }
@@ -898,7 +898,7 @@ img, video {
 
 /* ---------------- Spotlight Showcase (Recollect Style) ---------------- */
 .spotlight-section {
-  padding: 160px 0 120px;
+  padding: 60px 0 120px;
   position: relative;
   text-align: center;
   scroll-margin-top: 100px;
