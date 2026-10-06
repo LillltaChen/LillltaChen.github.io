@@ -757,15 +757,26 @@ img, video {
   background-color: rgba(0, 0, 0, 0.03);
   border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  transition: transform 0.65s var(--spring-bouyant), box-shadow 0.65s var(--spring-bouyant);
+  transition: box-shadow 0.65s var(--spring-bouyant);
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
 @media (hover: hover) {
   .project-card-link:hover .card-media-box {
-    transform: translateY(-4px) scale(1.015);
     box-shadow: 0 24px 38px -12px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
   }
+}
+
+.card-sheen {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  mix-blend-mode: overlay;
 }
 
 .project-card-link:active .card-media-box {
@@ -952,7 +963,7 @@ img, video {
 /* ---------------- 3D Card Carousel (Bencho.dev 3D Turntable Ring) ---------------- */
 .bencho-carousel-container {
   width: 100%;
-  max-width: 680px;
+  max-width: 760px;
   margin: 10px auto 30px;
   position: relative;
   user-select: none;
@@ -960,7 +971,7 @@ img, video {
 
 .car {
   position: relative;
-  width: 560px;
+  width: 640px;
   height: 380px;
   margin: 0 auto;
   user-select: none;
@@ -987,9 +998,10 @@ img, video {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 220px;
-  height: 293px;
-  will-change: transform, z-index;
+  width: 210px;
+  height: 276px;
+  will-change: transform, z-index, opacity;
+  transition: opacity 0.3s ease;
 }
 
 .car-float {

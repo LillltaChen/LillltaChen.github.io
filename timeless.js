@@ -320,21 +320,18 @@ document.addEventListener('DOMContentLoaded', () => {
       { title: '霸王茶姬 伯牙绝弦商业主视觉', tag: '新茶饮爆款' },
       { title: 'Google Pixel Pro 旗舰影像全案', tag: '先锋硬件视觉' },
       { title: '任天堂 Switch 3D 创意全案', tag: '游戏泛娱乐' },
-      { title: '山崎 Yamazaki 1923 高端商业摄影', tag: '洋酒典藏' },
-      { title: '招商银行「千里青绿」高端黑卡全案', tag: '高端金融视觉' },
       { title: '贵州茅台酒 传统工笔四格全案', tag: '国酒文化' },
       { title: '太二酸菜鱼「酸菜比鱼好吃」商业全案', tag: '餐饮潮流全案' },
       { title: '奇多 Cheetos 四格野性之旅插画', tag: '品牌创意插画' },
-      { title: '创维循环扇「风之语」商业全案', tag: '智能家电科技' },
       { title: '宋凰茶礼 一叶知秋新中式包装', tag: '东方茶礼美学' },
       { title: 'usmile 笑容加 Y10 智能声波牙刷全案', tag: '个人护理美学' },
       { title: '金秋暖阳慢下午 · 实拍转绘风格迁移全案', tag: '艺术风格迁移' }
     ];
 
     const numCards = slots.length;
-    const naturalTilts = [-3.8, 2.5, -2.1, 3.2, -1.8, 2.8, -3.2, 1.9, -2.6, 3.4, -1.5, 2.2, -2.8];
+    const naturalTilts = [-3.5, 2.4, -1.8, 3.2, -2.2, 2.6, -3.0, 1.8, -2.5, 2.0];
     const PULL = 130; // drag resistance
-    let orbit = window.innerWidth <= 640 ? 115 : 195;
+    let orbit = window.innerWidth <= 640 ? 120 : 235;
     let turn = 0;
     let animFrame = null;
     let isDragging = false;
@@ -345,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let vx = 0;
 
     window.addEventListener('resize', () => {
-      orbit = window.innerWidth <= 640 ? 115 : 195;
+      orbit = window.innerWidth <= 640 ? 120 : 235;
       updatePositions();
     });
 
@@ -354,13 +351,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const theta = (i - turn) * (Math.PI * 2 / numCards);
         const f = (Math.cos(theta) + 1) / 2; // 1 front, 0 back
         const x = Math.sin(theta) * orbit;
-        const y = -(1 - f) * 36; // back of ring rides up
-        const scale = 0.52 + 0.48 * f; // backScale 0.52 to 1
+        const y = -(1 - f) * 30; // back of ring rides up
+        const scale = 0.54 + 0.46 * f; // backScale 0.54 to 1
         const zIndex = Math.round(f * 100);
+        const opacity = (0.32 + 0.68 * f).toFixed(3);
         const tilt = naturalTilts[i % naturalTilts.length];
 
         slot.style.transform = `translate(-50%, -50%) translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${tilt}deg) scale(${scale.toFixed(4)})`;
         slot.style.zIndex = String(zIndex);
+        slot.style.opacity = opacity;
       });
 
       // Update metadata text
@@ -502,5 +501,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial positioning
     updatePositions();
+  }
+
+  // Rail Project Cards: Surface Sink & Specular Sheen
+  if (window.matchMedia('(hover: hover)').matches) {
+    const railCards = document.querySelectorAll('.card-media-box');
+    railCards.forEach((box) => {
+      const sheen = box.querySelector('.card-sheen');
+      const MAX_TILT = 4; // degrees, subtler than carousel (cards are larger)
+
+      box.addEventListener('pointermove', (e) => {
+        const rect = box.getBoundingClientRect();
+        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+        const rx = (-ny * MAX_TILT).toFixed(2);
+        const ry = (nx * MAX_TILT).toFixed(2);
+        box.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(-4px)`;
+
+        if (sheen) {
+          const sx = (((nx + 1) / 2) * 100).toFixed(1);
+          const sy = (((ny + 1) / 2) * 100).toFixed(1);
+          sheen.style.backgroundImage = `radial-gradient(circle at ${sx}% ${sy}%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.15) 35%, transparent 65%)`;
+          sheen.style.opacity = '1';
+        }
+      });
+
+      box.addEventListener('pointerleave', () => {
+        box.style.transform = '';
+        if (sheen) sheen.style.opacity = '0';
+      });
+    });
   }
 });
