@@ -337,36 +337,114 @@
     <!-- About & Contact Combined Section -->
     <section class="about-profile-section" id="about">
       <div class="about-container">
-        <span class="section-label">Capabilities · AI 能力栈</span>
+        <!-- Capabilities Header -->
+        <div class="capabilities-header">
+          <div class="capabilities-label-wrap">
+            <span class="section-label">Capabilities · AI 能力栈</span>
+          </div>
+          <h2 class="capabilities-heading">
+            The AI Engineering <span class="serif-italic">Stack</span>
+          </h2>
+          <p class="capabilities-desc">
+            以成熟商业视觉审美为底座，把直觉与经验解构为高确定性系统。用提示词工程锁定风格，多模型调度组装管线，Agent 产线实现工业级规模化交付。
+          </p>
+        </div>
 
-        <!-- 3 Core Capabilities -->
+        <!-- 3 Core Capabilities Bento Cards -->
         <div class="capabilities-cards">
+          <!-- Card 01: 提示词工程与风格控制 -->
           <div class="cap-card">
-            <span class="cap-num">01</span>
-            <h3 class="cap-title">提示词工程与风格控制</h3>
-            <p class="cap-body">结构化提示词 + LoRA + 参考图锁定品牌风格，100% 风格一致性。</p>
+            <div class="cap-card-top">
+              <span class="cap-num">01</span>
+              <span class="cap-badge">PRECISION</span>
+            </div>
+            <div class="cap-card-content">
+              <h3 class="cap-title">提示词工程与风格控制</h3>
+              <span class="cap-en-subtitle">Prompt Architecture &amp; Visual DNA</span>
+              <div class="cap-metric-pill">100% 品牌风格一致性</div>
+              <p class="cap-body">
+                结构化提示词 + LoRA 微调 + 多维参考图锁定品牌视觉 DNA，告别碰运气抽卡，实现高确定性交付。
+              </p>
+            </div>
+            <div class="cap-tags">
+              <span class="cap-tag">结构化 Prompt</span>
+              <span class="cap-tag">LoRA 微调</span>
+              <span class="cap-tag">品牌风格锁</span>
+            </div>
           </div>
+
+          <!-- Card 02: 多模型工具链调度 -->
           <div class="cap-card">
-            <span class="cap-num">02</span>
-            <h3 class="cap-title">多模型工具链调度</h3>
-            <p class="cap-body">Midjourney / 可灵 / Runway 组合，文生图→图生视频→自动合成全链路。</p>
+            <div class="cap-card-top">
+              <span class="cap-num">02</span>
+              <span class="cap-badge">ORCHESTRATION</span>
+            </div>
+            <div class="cap-card-content">
+              <h3 class="cap-title">多模型工具链调度</h3>
+              <span class="cap-en-subtitle">Multi-Model Toolchain Orchestration</span>
+              <div class="cap-metric-pill">文生图 → 视频 → 自动合成</div>
+              <p class="cap-body">
+                动态组合 Midjourney、FLUX、可灵、Runway 与 ComfyUI，文生图、图生视频到动态合成全链路贯通。
+              </p>
+            </div>
+            <div class="cap-tags">
+              <span class="cap-tag">Midjourney / FLUX</span>
+              <span class="cap-tag">可灵 Kling AI</span>
+              <span class="cap-tag">ComfyUI 编排</span>
+            </div>
           </div>
+
+          <!-- Card 03: Agent 工作流搭建 -->
           <div class="cap-card">
-            <span class="cap-num">03</span>
-            <h3 class="cap-title">Agent 工作流搭建</h3>
-            <p class="cap-body">把设计方法论写成可复用 Skill，一人搭建、全团队调用。</p>
+            <div class="cap-card-top">
+              <span class="cap-num">03</span>
+              <span class="cap-badge">PIPELINE</span>
+            </div>
+            <div class="cap-card-content">
+              <h3 class="cap-title">Agent 工作流搭建</h3>
+              <span class="cap-en-subtitle">Autonomous Agent Pipelines</span>
+              <div class="cap-metric-pill">一人搭建 · 全团队直接调用</div>
+              <p class="cap-body">
+                将设计总监方法论写成可复用标准化 Skill，手工作坊变生产线。制作成本降低 95%，周期压缩 83%。
+              </p>
+            </div>
+            <div class="cap-tags">
+              <span class="cap-tag">AI Skill 封装</span>
+              <span class="cap-tag">生产线自运行</span>
+              <span class="cap-tag">降本 95% 提速 83%</span>
+            </div>
           </div>
         </div>
-      </div>
 
-
-      <!-- Extended Reading: Feishu Wiki Links (compact row) -->
-      <div class="wiki-compact-row">
-        <span class="wiki-compact-label">延伸阅读 · 飞书知识库</span>
-        <div class="wiki-compact-links">
-          <a href="https://ocna1kutbggv.feishu.cn/wiki/J4XPw3GH8ip2YPkY0WyciwPVnfe" target="_blank" rel="noopener noreferrer">AIGC 商业广告合集 ↗</a>
-          <a href="https://ocna1kutbggv.feishu.cn/wiki/R0LmwkfEKiRgffkYg9WcvOVxnVe" target="_blank" rel="noopener noreferrer">AI 视频实战合集 ↗</a>
-          <a href="https://ocna1kutbggv.feishu.cn/wiki/BuEdwoRbliSKYuknGJlcA7RDnEh" target="_blank" rel="noopener noreferrer">AI Skill 实战合集 ↗</a>
+        <!-- Integrated Knowledge Base / Wiki Row -->
+        <div class="capabilities-wiki-bar">
+          <div class="cap-wiki-info">
+            <div class="cap-wiki-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                <path d="M6 6h10"></path>
+                <path d="M6 10h10"></path>
+              </svg>
+            </div>
+            <div class="cap-wiki-text">
+              <span class="cap-wiki-title">延伸阅读 · 飞书知识库</span>
+              <span class="cap-wiki-desc">一线商业全案拆解与 AI 实战复盘</span>
+            </div>
+          </div>
+          <div class="cap-wiki-links">
+            <a href="https://ocna1kutbggv.feishu.cn/wiki/J4XPw3GH8ip2YPkY0WyciwPVnfe" target="_blank" rel="noopener noreferrer" class="cap-wiki-link">
+              <span>AIGC 商业广告合集</span>
+              <span class="wiki-arrow">↗</span>
+            </a>
+            <a href="https://ocna1kutbggv.feishu.cn/wiki/R0LmwkfEKiRgffkYg9WcvOVxnVe" target="_blank" rel="noopener noreferrer" class="cap-wiki-link">
+              <span>AI 视频实战合集</span>
+              <span class="wiki-arrow">↗</span>
+            </a>
+            <a href="https://ocna1kutbggv.feishu.cn/wiki/BuEdwoRbliSKYuknGJlcA7RDnEh" target="_blank" rel="noopener noreferrer" class="cap-wiki-link">
+              <span>AI Skill 实战合集</span>
+              <span class="wiki-arrow">↗</span>
+            </a>
+          </div>
         </div>
       </div>
 
