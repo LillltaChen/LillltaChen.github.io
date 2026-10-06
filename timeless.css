@@ -567,6 +567,7 @@ img, video {
 .work-section {
   padding: 60px 0 110px;
   position: relative;
+  scroll-margin-top: 100px;
 }
 
 .section-header-row {
@@ -900,6 +901,7 @@ img, video {
   padding: 100px 0 120px;
   position: relative;
   text-align: center;
+  scroll-margin-top: 100px;
 }
 
 .spotlight-wrapper {
@@ -1151,6 +1153,7 @@ img, video {
 .about-profile-section {
   padding: 90px 0 60px;
   position: relative;
+  scroll-margin-top: 100px;
 }
 
 .about-hero-card {
@@ -1345,6 +1348,7 @@ img, video {
   padding-top: 48px;
   border-top: 1px solid var(--border-subtle);
   text-align: center;
+  scroll-margin-top: 100px;
 }
 
 .about-contact-intro {
