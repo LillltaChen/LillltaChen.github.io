@@ -153,4 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (e.key === 'ArrowRight') nextItem();
     });
   }
+
+  // 3. Footer back-to-top
+  document.querySelectorAll('.footer-back-to-top').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
 });
