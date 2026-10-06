@@ -522,4 +522,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial positioning
     updatePositions();
   }
+
+  // Footer back-to-top (prefers Lenis when available)
+  document.querySelectorAll('.footer-back-to-top').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.__lenis) {
+        window.__lenis.scrollTo(0, { duration: 1.2 });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
 });
