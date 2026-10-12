@@ -1045,7 +1045,16 @@ img, video {
   -webkit-user-select: none;
 }
 
-/* 移动端：轮播宽度自适应容器，不再固定 330px 溢出 */
+/* 轮播宽度自适应容器：
+   - ≤900px（小屏/窄窗/平板竖屏）：宽度不超过容器，避免固定 640px 溢出
+   - >900px：桌面固定 640px */
+@media (max-width: 900px) {
+  .car {
+    width: min(640px, 100%);
+    height: 380px;
+  }
+}
+
 @media (max-width: 640px) {
   .car {
     width: min(330px, 100%);
